@@ -1122,11 +1122,11 @@
             <div class="config-panel__title">⚙️ Configuration</div>
             <div class="config-grid">
                 <div class="form-group">
-                    <label>Gemini API Key <a href="https://aistudio.google.com/apikey" target="_blank"
+                    <label>Gemini API Keys <span class="optional">(Comma-separated for backup)</span> <a
+                            href="https://aistudio.google.com/apikey" target="_blank"
                             style="color: var(--accent-light); text-decoration: none; font-size: 11px;">(Get free
                             key)</a></label>
-                    <input type="password" id="geminiKey" placeholder="AIzaSy..." autocomplete="off"
-                        value="AIzaSyDqX2hiqYC-Z4H5OH7av1Gg59YGc2Oo0vU">
+                    <input type="password" id="geminiKey" placeholder="key1, key2, key3..." autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label>SerpAPI Key <span class="optional">(Optional — for real app store data)</span></label>
@@ -1238,31 +1238,73 @@
         let analysisData = {};
         let abortController = null;
         let isGenerating = false;
+        let apiKeys = [];
+        let currentKeyIndex = 0;
 
-        // ─── Gemini API ───
-        async function callGemini(prompt, apiKey) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                signal: abortController?.signal,
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: {
-                        temperature: 0.8,
-                        topP: 0.95,
-                        maxOutputTokens: 4096
-                    }
-                })
-            });
+        // ─── Gemini API with Rotation ───
+        async function callGemini(prompt, initialKeys = null) {
+            // Use provided keys or fall back to global state
+            const targetKeys = initialKeys || apiKeys;
 
-            if (!response.ok) {
-                const err = await response.json().catch(() => ({}));
-                throw new Error(err.error?.message || `API error: ${response.status}`);
+            if (!targetKeys || targetKeys.length === 0) {
+                throw new Error("No Gemini API keys provided.");
             }
 
-            const data = await response.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No content generated.';
+            let lastError = null;
+
+            // Try keys starting from currentKeyIndex
+            for (let attempt = 0; attempt < targetKeys.length; attempt++) {
+                const keyIndex = (currentKeyIndex + attempt) % targetKeys.length;
+                const apiKey = targetKeys[keyIndex];
+
+                try {
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        signal: abortController?.signal,
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }],
+                            generationConfig: {
+                                temperature: 0.8,
+                                topP: 0.95,
+                                maxOutputTokens: 4096
+                            }
+                        })
+                    });
+
+                    if (response.status === 429 || response.status >= 500) {
+                        const errData = await response.json().catch(() => ({}));
+                        console.warn(`Key ${keyIndex} failed with status ${response.status}. Trying next key...`, errData);
+                        lastError = new Error(errData.error?.message || `API error: ${response.status}`);
+                        continue; // Try next key
+                    }
+
+                    if (!response.ok) {
+                        const errData = await response.json().catch(() => ({}));
+                        throw new Error(errData.error?.message || `API error: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    // Success! Update global index to keep using this working key
+                    currentKeyIndex = keyIndex;
+
+                    if (attempt > 0) {
+                        showToast(`Switched to backup API key (#${keyIndex + 1})`, 'success');
+                    }
+
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No content generated.';
+
+                } catch (e) {
+                    if (e.name === 'AbortError') throw e;
+                    console.warn(`Attempt with key ${keyIndex} failed:`, e);
+                    lastError = e;
+                    // If it's a network error or other retryable error, continue to next key
+                }
+            }
+
+            throw lastError || new Error("All API keys failed.");
         }
 
         // ─── SerpAPI (App Store Search) ───
@@ -1571,8 +1613,12 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
             const serpKey = document.getElementById('serpKey').value.trim();
             const userPrompt = document.getElementById('promptInput').value.trim();
 
-            if (!geminiKey) { showToast('Please enter your Gemini API key.', 'error'); return; }
+            if (!geminiKey) { showToast('Please enter at least one Gemini API key.', 'error'); return; }
             if (!userPrompt) { showToast('Please enter a product prompt.', 'error'); return; }
+
+            // Parse keys
+            apiKeys = geminiKey.split(',').map(k => k.trim()).filter(k => k);
+            currentKeyIndex = 0; // Reset to first key on new analysis start
 
             // Save keys to localStorage
             localStorage.setItem('pa_gemini_key', geminiKey);
@@ -1635,7 +1681,7 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
                 try {
                     // Rebuild prompts with accumulated context
                     const freshPrompts = buildPrompts(userPrompt, appStoreData, analysisData);
-                    const content = await callGemini(freshPrompts[section.id], geminiKey);
+                    const content = await callGemini(freshPrompts[section.id]);
 
                     analysisData[section.id] = content;
 
@@ -1749,7 +1795,7 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
             try {
                 abortController = new AbortController();
                 const freshPrompts = buildPrompts(userPrompt, null, analysisData);
-                const content = await callGemini(freshPrompts[id], geminiKey);
+                const content = await callGemini(freshPrompts[id]);
 
                 analysisData[id] = content;
                 contentEl.innerHTML = `<div class="section-card__edit-indicator" id="editind-${id}">✏️ Editing — click outside to save</div><div class="markdown-body">${marked.parse(content)}</div>`;
@@ -1763,13 +1809,12 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
 
         // ─── Q&A Refinement ───
         async function applyRefinement() {
-            const geminiKey = document.getElementById('geminiKey').value.trim();
             const userInput = document.getElementById('qaInput').value.trim();
             const messagesEl = document.getElementById('qaMessages');
             const statusEl = document.getElementById('refiningStatus');
             const refineBtn = document.getElementById('refineBtn');
 
-            if (!geminiKey || !userInput) return;
+            if (apiKeys.length === 0 || !userInput) return;
 
             // Add user message to UI
             const userMsg = document.createElement('div');
@@ -1816,7 +1861,7 @@ INSTRUCTIONS:
 RESPONSE FORMAT: (Only return the JSON object)
 `;
 
-                const rawResponse = await callGemini(refinementPrompt, geminiKey);
+                const rawResponse = await callGemini(refinementPrompt);
 
                 // Try to parse JSON. Sometimes Gemini might wrap it in markdown blocks.
                 let jsonStr = rawResponse.trim();

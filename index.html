@@ -991,6 +991,118 @@
                 justify-content: center;
             }
         }
+
+        /* ─── Q&A / Refinement ─── */
+        .qa-container {
+            margin-top: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            backdrop-filter: blur(20px);
+            display: none;
+        }
+
+        .qa-container.active {
+            display: block;
+            animation: cardSlideIn 0.5s ease both;
+        }
+
+        .qa-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .qa-messages {
+            max-height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-right: 8px;
+        }
+
+        .qa-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .qa-messages::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .message--user {
+            align-self: flex-end;
+            background: var(--accent-glow);
+            color: var(--accent-light);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-bottom-right-radius: 4px;
+        }
+
+        .message--ai {
+            align-self: flex-start;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+
+        .qa-input-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .qa-input-wrapper textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        .qa-input-wrapper textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .qa-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .refining-status {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--accent-light);
+            margin-bottom: 10px;
+        }
+
+        .refining-status.active {
+            display: flex;
+        }
     </style>
 </head>
 
@@ -1072,6 +1184,34 @@
                 </div>
             </div>
             <div id="sectionsContainer"></div>
+
+            <!-- ─── Q&A Section ─── -->
+            <div class="qa-container" id="qaContainer">
+                <div class="qa-header">
+                    <span>💬</span> Smart Refinement & Q&A
+                </div>
+
+                <div class="qa-messages" id="qaMessages">
+                    <div class="message message--ai">
+                        Analysis complete! You can ask questions about the results or request specific edits here.
+                        For example: "Add a section for marketing strategy" or "Who are the competitors in Japan?"
+                    </div>
+                </div>
+
+                <div class="refining-status" id="refiningStatus">
+                    <div class="spinner"></div>
+                    <span>AI is refining the analysis...</span>
+                </div>
+
+                <div class="qa-input-wrapper">
+                    <textarea id="qaInput" placeholder="Ask a question or request a fix..."></textarea>
+                    <div class="qa-actions">
+                        <button class="btn btn--primary" id="refineBtn" onclick="applyRefinement()">
+                            ✨ Refine Analysis
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1536,6 +1676,7 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
 
             if (Object.keys(analysisData).length > 0) {
                 showToast('Analysis complete! All sections generated.');
+                document.getElementById('qaContainer').classList.add('active');
             }
         }
 
@@ -1617,6 +1758,120 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
             } catch (e) {
                 contentEl.innerHTML = `<div class="markdown-body" style="color:var(--danger)">⚠️ Regeneration failed: ${e.message}</div>`;
                 showToast(`Error: ${e.message}`, 'error');
+            }
+        }
+
+        // ─── Q&A Refinement ───
+        async function applyRefinement() {
+            const geminiKey = document.getElementById('geminiKey').value.trim();
+            const userInput = document.getElementById('qaInput').value.trim();
+            const messagesEl = document.getElementById('qaMessages');
+            const statusEl = document.getElementById('refiningStatus');
+            const refineBtn = document.getElementById('refineBtn');
+
+            if (!geminiKey || !userInput) return;
+
+            // Add user message to UI
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message message--user';
+            userMsg.textContent = userInput;
+            messagesEl.appendChild(userMsg);
+            document.getElementById('qaInput').value = '';
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+
+            // UI State
+            statusEl.classList.add('active');
+            refineBtn.disabled = true;
+
+            try {
+                // Prepare context: Current analysis data
+                const context = SECTIONS.filter(s => analysisData[s.id]).map(s => {
+                    return `SECTION: ${s.id} (${s.title})\nCONTENT:\n${analysisData[s.id]}`;
+                }).join('\n\n---\n\n');
+
+                const refinementPrompt = `
+You are an expert product analyst helping a user refine a product analysis report.
+Current User Prompt: "${document.getElementById('promptInput').value.trim()}"
+
+CURRENT ANALYSIS CONTENT:
+${context}
+
+USER REQUEST: "${userInput}"
+
+INSTRUCTIONS:
+1. Address the user's request. You can provide an answer to a question AND/OR update specific sections of the analysis.
+2. If you decide to update sections, return the FULL NEW CONTENT for those sections.
+3. Your response must be a valid JSON object with the following format:
+{
+  "answer": "Your natural language response to the user's query.",
+  "updates": {
+    "section_id": "Fully updated markdown content for this section",
+    ...
+  }
+}
+4. Only include sections in "updates" that actually need changing.
+5. In your "answer", explain what changes you made.
+6. Ensure the markdown you return is high quality and follows the existing style.
+
+RESPONSE FORMAT: (Only return the JSON object)
+`;
+
+                const rawResponse = await callGemini(refinementPrompt, geminiKey);
+
+                // Try to parse JSON. Sometimes Gemini might wrap it in markdown blocks.
+                let jsonStr = rawResponse.trim();
+                if (jsonStr.startsWith('```json')) jsonStr = jsonStr.replace(/```json|```/g, '').trim();
+                if (jsonStr.startsWith('{')) {
+                    const result = JSON.parse(jsonStr);
+
+                    // Add AI answer
+                    const aiMsg = document.createElement('div');
+                    aiMsg.className = 'message message--ai';
+                    aiMsg.innerHTML = marked.parse(result.answer || "Refinement complete.");
+                    messagesEl.appendChild(aiMsg);
+
+                    // Apply updates
+                    if (result.updates) {
+                        for (const [sectionId, newContent] of Object.entries(result.updates)) {
+                            if (analysisData[sectionId] !== undefined) {
+                                analysisData[sectionId] = newContent;
+                                const contentEl = document.getElementById(`content-${sectionId}`);
+                                if (contentEl) {
+                                    contentEl.innerHTML = `<div class="section-card__edit-indicator" id="editind-${sectionId}">✏️ Editing — click outside to save</div><div class="markdown-body">${marked.parse(newContent)}</div>`;
+                                }
+                                const editArea = document.getElementById(`editarea-${sectionId}`);
+                                if (editArea) editArea.value = newContent;
+
+                                // Visual feedback on the updated card
+                                const card = document.getElementById(`card-${sectionId}`);
+                                if (card) {
+                                    card.style.borderColor = 'var(--accent)';
+                                    setTimeout(() => card.style.borderColor = 'var(--border)', 2000);
+                                }
+                            }
+                        }
+                        showToast(`Updated ${Object.keys(result.updates).length} sections!`);
+                    }
+                } else {
+                    // Fallback for non-JSON response
+                    const aiMsg = document.createElement('div');
+                    aiMsg.className = 'message message--ai';
+                    aiMsg.innerHTML = marked.parse(rawResponse);
+                    messagesEl.appendChild(aiMsg);
+                }
+
+            } catch (e) {
+                console.error(e);
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'message message--ai';
+                errorMsg.style.color = 'var(--danger)';
+                errorMsg.textContent = `Error: ${e.message}`;
+                messagesEl.appendChild(errorMsg);
+                showToast('Refinement failed.', 'error');
+            } finally {
+                statusEl.classList.remove('active');
+                refineBtn.disabled = false;
+                messagesEl.scrollTop = messagesEl.scrollHeight;
             }
         }
 

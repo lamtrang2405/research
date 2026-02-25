@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Analyst Pro — AI-Powered Product Analysis</title>
+    <meta name="description"
+        content="Generate comprehensive product analysis from a single prompt. Competitor research, market sizing, roadmap planning and more.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-card-hover: rgba(255, 255, 255, 0.06);
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-active: rgba(139, 92, 246, 0.5);
+            --text-primary: #f0f0f5;
+            --text-secondary: #9898a6;
+            --text-muted: #5a5a6e;
+            --accent: #8b5cf6;
+            --accent-light: #a78bfa;
+            --accent-glow: rgba(139, 92, 246, 0.15);
+            --accent-2: #06b6d4;
+            --accent-3: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --radius-xs: 6px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ─── Background Effects ─── */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(6, 182, 212, 0.04) 0%, transparent 50%);
+            z-index: -1;
+            animation: bgShift 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgShift {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(-5%, -3%);
+            }
+        }
+
+        /* ─── Header ─── */
+        .header {
+            text-align: center;
+            padding: 60px 24px 40px;
+            position: relative;
+        }
+
+        .header__badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: var(--accent-glow);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 24px;
+        }
+
+        .header__badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+
+        .header h1 {
+            font-size: clamp(32px, 5vw, 56px);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            background: linear-gradient(135deg, #f0f0f5 0%, #8b5cf6 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+        }
+
+        .header p {
+            font-size: 17px;
+            color: var(--text-secondary);
+            max-width: 560px;
+            margin: 0 auto;
+            font-weight: 300;
+        }
+
+        /* ─── Container ─── */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px 80px;
+        }
+
+        /* ─── Config Panel ─── */
+        .config-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(20px);
+        }
+
+        .config-panel__title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 640px) {
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-group label .optional {
+            color: var(--text-muted);
+            font-weight: 400;
+            font-size: 11px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* ─── Prompt Area ─── */
+        .prompt-area {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(20px);
+        }
+
+        .prompt-area textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 15px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .prompt-area textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .prompt-area textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .prompt-area__hint {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .prompt-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        /* ─── Buttons ─── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 28px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn--primary {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn--primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 28px rgba(139, 92, 246, 0.45);
+        }
+
+        .btn--primary:active {
+            transform: translateY(0);
+        }
+
+        .btn--primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn--secondary {
+            background: var(--bg-glass);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn--secondary:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn--small {
+            padding: 8px 16px;
+            font-size: 12px;
+            border-radius: var(--radius-xs);
+        }
+
+        .btn--icon {
+            padding: 8px;
+            min-width: 36px;
+            justify-content: center;
+        }
+
+        /* ─── Progress Tracker ─── */
+        .progress-tracker {
+            display: none;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(20px);
+        }
+
+        .progress-tracker.active {
+            display: block;
+        }
+
+        .progress-tracker__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .progress-tracker__title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .progress-tracker__count {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-secondary);
+            border-radius: 100px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar__fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8b5cf6, #06b6d4);
+            border-radius: 100px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .progress-steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .progress-step {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 100px;
+            background: var(--bg-secondary);
+            color: var(--text-muted);
+            border: 1px solid transparent;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+
+        .progress-step.active {
+            color: var(--accent-light);
+            border-color: rgba(139, 92, 246, 0.3);
+            background: var(--accent-glow);
+            animation: stepPulse 1.5s ease-in-out infinite;
+        }
+
+        .progress-step.done {
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.2);
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .progress-step.error {
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        @keyframes stepPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.2);
+            }
+
+            50% {
+                box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.05);
+            }
+        }
+
+        /* ─── Results ─── */
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .results__toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            backdrop-filter: blur(20px);
+        }
+
+        .results__toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .results__toolbar-right {
+            display: flex;
+            gap: 8px;
+        }
+
+        .results__toolbar h2 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .results__toolbar .section-count {
+            font-size: 12px;
+            color: var(--text-muted);
+            padding: 4px 10px;
+            background: var(--bg-secondary);
+            border-radius: 100px;
+        }
+
+        /* ─── Section Card ─── */
+        .section-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            backdrop-filter: blur(20px);
+            animation: cardSlideIn 0.4s ease both;
+        }
+
+        @keyframes cardSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .section-card__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px;
+            cursor: pointer;
+            user-select: none;
+            transition: background var(--transition);
+        }
+
+        .section-card__header:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .section-card__header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .section-card__icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-xs);
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .section-card__number {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .section-card__title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .section-card__header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-card__chevron {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: transform var(--transition);
+        }
+
+        .section-card.expanded .section-card__chevron {
+            transform: rotate(180deg);
+        }
+
+        .section-card__body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .section-card.expanded .section-card__body {
+            max-height: 8000px;
+        }
+
+        .section-card__content {
+            padding: 0 24px 24px;
+        }
+
+        .section-card__content .markdown-body[contenteditable="true"] {
+            outline: none;
+            border: 1px dashed var(--accent);
+            border-radius: var(--radius-xs);
+            padding: 16px;
+            background: rgba(139, 92, 246, 0.03);
+            cursor: text;
+            position: relative;
+        }
+
+        .section-card__content .markdown-body[contenteditable="true"]:focus {
+            border-color: var(--accent-light);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .section-card__edit-indicator {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--accent-light);
+            margin-bottom: 8px;
+            padding: 4px 10px;
+            background: var(--accent-glow);
+            border-radius: 100px;
+            width: fit-content;
+        }
+
+        .section-card.editing .section-card__edit-indicator {
+            display: inline-flex;
+        }
+
+        .section-card__actions {
+            display: flex;
+            gap: 8px;
+            padding: 0 24px 18px;
+            border-top: 1px solid var(--border);
+            padding-top: 14px;
+            margin-top: 8px;
+        }
+
+        /* ─── Citation Styles ─── */
+        .markdown-body .citation-section {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .markdown-body .citation-section h4,
+        .markdown-body .citation-section h3 {
+            color: var(--accent-light);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .markdown-body a {
+            color: var(--accent-light);
+            text-decoration: none;
+            border-bottom: 1px dotted var(--accent);
+            transition: color var(--transition);
+        }
+
+        .markdown-body a:hover {
+            color: var(--accent);
+        }
+
+        /* ─── Markdown Content Styles ─── */
+        .markdown-body {
+            font-size: 14px;
+            line-height: 1.75;
+            color: var(--text-secondary);
+        }
+
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3,
+        .markdown-body h4 {
+            color: var(--text-primary);
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .markdown-body h1 {
+            font-size: 22px;
+        }
+
+        .markdown-body h2 {
+            font-size: 18px;
+        }
+
+        .markdown-body h3 {
+            font-size: 16px;
+        }
+
+        .markdown-body h4 {
+            font-size: 14px;
+        }
+
+        .markdown-body p {
+            margin-bottom: 12px;
+        }
+
+        .markdown-body ul,
+        .markdown-body ol {
+            padding-left: 24px;
+            margin-bottom: 12px;
+        }
+
+        .markdown-body li {
+            margin-bottom: 4px;
+        }
+
+        .markdown-body strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .markdown-body em {
+            color: var(--accent-light);
+        }
+
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 13px;
+        }
+
+        .markdown-body th {
+            text-align: left;
+            padding: 10px 14px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-weight: 600;
+            border: 1px solid var(--border);
+        }
+
+        .markdown-body td {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+        }
+
+        .markdown-body blockquote {
+            border-left: 3px solid var(--accent);
+            padding: 8px 16px;
+            margin: 12px 0;
+            background: var(--accent-glow);
+            border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+        }
+
+        .markdown-body code {
+            background: var(--bg-secondary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .markdown-body hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 20px 0;
+        }
+
+        /* ─── Edit Mode ─── */
+        .section-card__editor {
+            display: none;
+            padding: 0 24px 24px;
+        }
+
+        .section-card.editing .section-card__content {
+            display: none;
+        }
+
+        .section-card.editing .section-card__editor {
+            display: block;
+        }
+
+        .section-card__editor textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            resize: vertical;
+            tab-size: 2;
+        }
+
+        .section-card__editor textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        /* ─── Loading Spinner ─── */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent-light);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ─── Toast ─── */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 13px;
+            box-shadow: var(--shadow);
+            animation: toastIn 0.3s ease;
+            backdrop-filter: blur(20px);
+        }
+
+        .toast.success {
+            border-left: 3px solid var(--success);
+        }
+
+        .toast.error {
+            border-left: 3px solid var(--danger);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ─── Print Styles ─── */
+        @media print {
+            body {
+                background: white;
+                color: #111;
+            }
+
+            body::before {
+                display: none;
+            }
+
+            .header,
+            .config-panel,
+            .prompt-area,
+            .progress-tracker,
+            .results__toolbar,
+            .section-card__actions,
+            .section-card__header-right,
+            .btn,
+            .toast-container {
+                display: none !important;
+            }
+
+            .section-card {
+                border: 1px solid #ddd;
+                break-inside: avoid;
+                background: white;
+            }
+
+            .section-card__body {
+                max-height: none !important;
+            }
+
+            .section-card__content {
+                display: block !important;
+            }
+
+            .section-card__editor {
+                display: none !important;
+            }
+
+            .markdown-body {
+                color: #333;
+            }
+
+            .markdown-body strong {
+                color: #111;
+            }
+
+            .results {
+                display: block !important;
+            }
+
+            .section-card__header {
+                padding: 12px 16px;
+            }
+
+            .section-card__title {
+                color: #111;
+            }
+        }
+
+        /* ─── Skeleton ─── */
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-secondary) 25%, rgba(255, 255, 255, 0.05) 50%, var(--bg-secondary) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: var(--radius-xs);
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .skeleton-line {
+            height: 14px;
+            margin-bottom: 10px;
+        }
+
+        .skeleton-line:nth-child(2) {
+            width: 85%;
+        }
+
+        .skeleton-line:nth-child(3) {
+            width: 70%;
+        }
+
+        .skeleton-line:nth-child(4) {
+            width: 90%;
+        }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 640px) {
+            .header {
+                padding: 40px 16px 24px;
+            }
+
+            .container {
+                padding: 0 16px 60px;
+            }
+
+            .config-panel,
+            .prompt-area,
+            .section-card {
+                padding: 20px;
+            }
+
+            .section-card__header {
+                padding: 14px 18px;
+            }
+
+            .section-card__content {
+                padding: 0 18px 18px;
+            }
+
+            .section-card__actions {
+                padding: 0 18px 14px;
+                padding-top: 12px;
+            }
+
+            .results__toolbar {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .prompt-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ─── Header ─── -->
+    <header class="header">
+        <div class="header__badge">AI-Powered Analysis</div>
+        <h1>Product Analyst Pro</h1>
+        <p>Generate a comprehensive product analysis from a single prompt. Competitor research, market sizing, roadmap
+            planning and more.</p>
+    </header>
+
+    <div class="container">
+        <!-- ─── Config Panel ─── -->
+        <div class="config-panel">
+            <div class="config-panel__title">⚙️ Configuration</div>
+            <div class="config-grid">
+                <div class="form-group">
+                    <label>Gemini API Key <a href="https://aistudio.google.com/apikey" target="_blank"
+                            style="color: var(--accent-light); text-decoration: none; font-size: 11px;">(Get free
+                            key)</a></label>
+                    <input type="password" id="geminiKey" placeholder="AIzaSy..." autocomplete="off"
+                        value="AIzaSyDqX2hiqYC-Z4H5OH7av1Gg59YGc2Oo0vU">
+                </div>
+                <div class="form-group">
+                    <label>SerpAPI Key <span class="optional">(Optional — for real app store data)</span></label>
+                    <input type="password" id="serpKey" placeholder="Leave empty for AI-only mode" autocomplete="off">
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── Prompt Area ─── -->
+        <div class="prompt-area">
+            <textarea id="promptInput"
+                placeholder="Describe the product you want to analyze...&#10;&#10;Example: A meditation app for Gen Z with social features, gamification, and AI-personalized content. Target markets: US, UK, and Southeast Asia."></textarea>
+            <div class="prompt-area__hint">
+                💡 Be specific — include target audience, key features, and target markets for best results.
+            </div>
+            <div class="prompt-actions">
+                <button class="btn btn--primary" id="generateBtn" onclick="startAnalysis()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path
+                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    Generate Analysis
+                </button>
+                <button class="btn btn--secondary" id="stopBtn" onclick="stopAnalysis()" style="display:none;">
+                    ✕ Stop
+                </button>
+            </div>
+        </div>
+
+        <!-- ─── Progress Tracker ─── -->
+        <div class="progress-tracker" id="progressTracker">
+            <div class="progress-tracker__header">
+                <div class="progress-tracker__title" id="progressTitle">Generating analysis...</div>
+                <div class="progress-tracker__count" id="progressCount">0 / 11</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-bar__fill" id="progressFill"></div>
+            </div>
+            <div class="progress-steps" id="progressSteps"></div>
+        </div>
+
+        <!-- ─── Results ─── -->
+        <div class="results" id="results">
+            <div class="results__toolbar">
+                <div class="results__toolbar-left">
+                    <h2>📋 Analysis Results</h2>
+                    <span class="section-count" id="sectionCount">11 sections</span>
+                </div>
+                <div class="results__toolbar-right">
+                    <button class="btn btn--secondary btn--small" onclick="expandAll()">Expand All</button>
+                    <button class="btn btn--secondary btn--small" onclick="collapseAll()">Collapse All</button>
+                    <button class="btn btn--secondary btn--small" onclick="exportMarkdown()">📥 Markdown</button>
+                    <button class="btn btn--primary btn--small" onclick="exportWord()">📝 Word</button>
+                    <button class="btn btn--secondary btn--small" onclick="exportPDF()">📄 PDF</button>
+                </div>
+            </div>
+            <div id="sectionsContainer"></div>
+        </div>
+    </div>
+
+    <!-- ─── Toast Container ─── -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ─── Section Definitions ───
+        const SECTIONS = [
+            { id: 'target_audience', icon: '🎯', title: 'Target Audience & User Personas', color: '#8b5cf6' },
+            { id: 'competitor_list', icon: '🏆', title: 'Competitor List (App Store & Google Play)', color: '#06b6d4' },
+            { id: 'competitor_analysis', icon: '📊', title: 'Competitor Deep-Dive Analysis', color: '#3b82f6' },
+            { id: 'market_potential', icon: '📈', title: 'Market Potential (TAM / SAM / SOM)', color: '#10b981' },
+            { id: 'uvp', icon: '💡', title: 'Unique Value Proposition', color: '#f59e0b' },
+            { id: 'swot', icon: '🔍', title: 'SWOT Analysis', color: '#ef4444' },
+            { id: 'features', icon: '⚙️', title: 'Product Features', color: '#8b5cf6' },
+            { id: 'monetization', icon: '💰', title: 'Monetization Strategy', color: '#10b981' },
+            { id: 'kpis', icon: '📋', title: 'Key Metrics & KPIs', color: '#06b6d4' },
+            { id: 'roadmap', icon: '🗺️', title: 'Product Roadmap', color: '#3b82f6' },
+            { id: 'risks', icon: '⚠️', title: 'Risk Assessment', color: '#f59e0b' }
+        ];
+
+        // ─── State ───
+        let analysisData = {};
+        let abortController = null;
+        let isGenerating = false;
+
+        // ─── Gemini API ───
+        async function callGemini(prompt, apiKey) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                signal: abortController?.signal,
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        temperature: 0.8,
+                        topP: 0.95,
+                        maxOutputTokens: 4096
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error?.message || `API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No content generated.';
+        }
+
+        // ─── SerpAPI (App Store Search) ───
+        async function searchAppStores(query, apiKey) {
+            if (!apiKey) return null;
+            try {
+                const googlePlayUrl = `https://serpapi.com/search.json?engine=google_play&q=${encodeURIComponent(query)}&store=apps&api_key=${apiKey}`;
+                const appStoreUrl = `https://serpapi.com/search.json?engine=apple_app_store&term=${encodeURIComponent(query)}&api_key=${apiKey}`;
+
+                const [gpRes, asRes] = await Promise.allSettled([
+                    fetch(googlePlayUrl, { signal: abortController?.signal }).then(r => r.json()),
+                    fetch(appStoreUrl, { signal: abortController?.signal }).then(r => r.json())
+                ]);
+
+                const googlePlayApps = gpRes.status === 'fulfilled' ? (gpRes.value.organic_results || []).slice(0, 10) : [];
+                const appStoreApps = asRes.status === 'fulfilled' ? (asRes.value.organic_results || []).slice(0, 10) : [];
+
+                return { googlePlayApps, appStoreApps };
+            } catch (e) {
+                console.warn('SerpAPI search failed:', e);
+                return null;
+            }
+        }
+
+        // ─── Build Section Prompts ───
+        function buildPrompts(userPrompt, appStoreData, previousSections) {
+            const ctx = (keys) => {
+                const parts = keys.filter(k => previousSections[k]).map(k => {
+                    const sec = SECTIONS.find(s => s.id === k);
+                    return `### ${sec.title}\n${previousSections[k]}`;
+                });
+                return parts.length ? `\n\nHere is the analysis so far for context:\n${parts.join('\n\n')}` : '';
+            };
+
+            const appDataStr = appStoreData ? `
+Here is REAL app store data found for this product category:
+
+**Google Play Apps Found:**
+${appStoreData.googlePlayApps.map((a, i) => `${i + 1}. ${a.title || 'Unknown'} by ${a.developer || 'Unknown'} — Rating: ${a.rating || 'N/A'} (${a.reviews || 'N/A'} reviews) — ${a.description?.substring(0, 100) || 'No description'}...`).join('\n')}
+
+**App Store Apps Found:**
+${appStoreData.appStoreApps.map((a, i) => `${i + 1}. ${a.title || 'Unknown'} by ${a.developer || 'Unknown'} — Rating: ${a.rating || 'N/A'} — ${a.description?.substring(0, 100) || 'No description'}...`).join('\n')}
+
+Use this real data to enrich your analysis. Reference actual app names, ratings, and developers.` : '';
+
+            const citationInstruction = `\n\nIMPORTANT: At the end of your response, include a "### Sources & References" section. List all data sources, research reports, industry publications, and references you used or drew upon. Format each as: [Number] Source Name — Description/URL. Include at minimum 5-8 credible references (e.g. Statista, App Annie/data.ai, Sensor Tower, Grand View Research, IBISWorld, Crunchbase, industry publications, etc.).`;
+
+            return {
+                target_audience: `You are a senior product analyst. Based on this product concept, create a detailed Target Audience & User Personas analysis.
+
+Product concept: "${userPrompt}"
+
+Provide in markdown format:
+1. **Primary Target Demographics** — age, gender, income, education, location
+2. **User Personas** (create 3-4 detailed personas) — each with name, age, occupation, pain points, goals, tech behavior, and how they'd use this product
+3. **Market Segments** — identify 2-3 distinct user segments with size estimates
+4. **User Behavior Patterns** — when/how/why they'd use this product
+5. **Acquisition Channels** — where to find these users
+
+Be specific and data-driven. Use markdown tables where appropriate.${citationInstruction}`,
+
+                competitor_list: `You are a senior product analyst. Create a comprehensive competitor list for this product.
+
+Product concept: "${userPrompt}"
+${appDataStr}
+
+Provide in markdown format:
+1. **Direct Competitors** — apps/products that solve the same problem (list 8-12)
+2. **Indirect Competitors** — apps/products that partially overlap (list 5-8)
+3. **Potential Future Competitors** — companies that could enter this space
+
+For each competitor, include in a markdown table:
+| App Name | Platform | Downloads/Users (est.) | Rating | Pricing | Key Differentiator |
+
+${appStoreData ? 'Incorporate the real app store data provided above. Prioritize real data over estimates.' : 'Estimate based on your knowledge of the market.'}
+${ctx(['target_audience'])}${citationInstruction}`,
+
+                competitor_analysis: `You are a senior product analyst. Create a deep-dive competitor analysis.
+
+Product concept: "${userPrompt}"
+${ctx(['target_audience', 'competitor_list'])}
+
+Provide in markdown format:
+1. **Feature Comparison Matrix** — markdown table comparing top 6 competitors across 10+ features (✅/❌/partial)
+2. **Pricing Analysis** — detailed pricing comparison table (free tier, premium, enterprise)
+3. **Strengths & Weaknesses** — for top 5 competitors
+4. **User Review Sentiment** — summarize what users love/hate about top competitors
+5. **Market Positioning Map** — describe where competitors sit (premium vs budget, simple vs feature-rich)
+6. **Competitive Gaps** — opportunities not addressed by current players
+
+Be thorough and analytical. Use tables extensively.${citationInstruction}`,
+
+                market_potential: `You are a senior market analyst. Create a comprehensive market potential analysis.
+
+Product concept: "${userPrompt}"
+${ctx(['target_audience', 'competitor_list'])}
+
+Provide in markdown format:
+1. **TAM (Total Addressable Market)** — global market size with calculation methodology
+2. **SAM (Serviceable Addressable Market)** — realistic reachable market
+3. **SOM (Serviceable Obtainable Market)** — realistic 3-year capture target
+4. **Market Growth Trends** — CAGR, growth drivers, projected trajectory (include numbers)
+5. **Geographic Breakdown** — market size by region with growth rates
+6. **Revenue Potential Scenarios** — conservative / moderate / aggressive with assumptions
+7. **Market Timing** — is now the right time? Why?
+
+Use dollar figures, percentages, and cite industry benchmarks. Include a markdown table for TAM/SAM/SOM breakdown.${citationInstruction}`,
+
+                uvp: `You are a senior product strategist. Define a compelling Unique Value Proposition.
+
+Product concept: "${userPrompt}"
+${ctx(['target_audience', 'competitor_list', 'competitor_analysis', 'market_potential'])}
+
+Provide in markdown format:
+1. **Core UVP Statement** — one powerful sentence
+2. **Value Proposition Canvas** — customer jobs, pains, gains vs. your product's pain relievers and gain creators
+3. **Key Differentiators** — 4-6 things that make this product uniquely valuable
+4. **Why Now** — why this product needs to exist now
+5. **Positioning Statement** — "For [target] who [need], [product] is a [category] that [benefit]. Unlike [alternatives], we [differentiator]."
+6. **Elevator Pitch** — 30-second version
+
+Be specific and compelling, not generic.${citationInstruction}`,
+
+                swot: `You are a senior business analyst. Create a thorough SWOT analysis.
+
+Product concept: "${userPrompt}"
+${ctx(['target_audience', 'competitor_list', 'competitor_analysis', 'market_potential', 'uvp'])}
+
+Provide in markdown format with a clear SWOT matrix table, then detailed analysis:
+
+1. **SWOT Matrix** — markdown table with S/W/O/T quadrants (5-7 items each)
+2. **Strengths Deep-Dive** — elaborate on each strength
+3. **Weaknesses Deep-Dive** — elaborate with mitigation strategies
+4. **Opportunities Deep-Dive** — elaborate with action items
+5. **Threats Deep-Dive** — elaborate with contingency plans
+6. **Strategic Implications** — what the SWOT tells us about overall strategy
+7. **Priority Actions** — top 5 actions based on SWOT findings${citationInstruction}`,
+
+                features: `You are a senior product manager. Define the product features.
+
+Product concept: "${userPrompt}"
+${ctx(['target_audience', 'competitor_analysis', 'uvp', 'swot'])}
+
+Provide in markdown format:
+1. **Core Features (MVP)** — the must-have features for launch (8-12 features)
+   - For each: feature name, description, user benefit, priority (P0/P1/P2), estimated complexity
+2. **Premium/Advanced Features** — features for paid tiers (5-8 features)
+3. **Nice-to-Have Features** — future consideration (5-8 features)
+4. **Feature Prioritization Matrix** — markdown table: Feature | Impact | Effort | Priority
+5. **Technical Requirements** — key tech considerations for core features
+6. **Feature Differentiators** — which features set this apart from competitors
+
+Use markdown tables for the prioritization matrix. Be specific about what each feature does.${citationInstruction}`,
+
+                monetization: `You are a senior monetization strategist. Design the monetization strategy.
+
+Product concept: "${userPrompt}"
+${ctx(['target_audience', 'competitor_analysis', 'market_potential', 'features'])}
+
+Provide in markdown format:
+1. **Revenue Model** — primary and secondary revenue streams
+2. **Pricing Tiers** — detailed breakdown (Free / Premium / Pro / Enterprise) with exact prices and what's included in each
+3. **Pricing Comparison vs Competitors** — markdown table
+4. **Revenue Projections** — Year 1-3 with assumptions (users, conversion rates, ARPU)
+5. **Customer Lifetime Value (CLV)** — estimated CLV by segment
+6. **Customer Acquisition Cost (CAC)** — target CAC and channels
+7. **Unit Economics** — CLV:CAC ratio, payback period, margins
+8. **Pricing Psychology** — specific pricing tactics to use
+
+Include detailed financial projections in markdown tables.${citationInstruction}`,
+
+                kpis: `You are a senior data/analytics lead. Define the key metrics and KPIs.
+
+Product concept: "${userPrompt}"
+${ctx(['target_audience', 'features', 'monetization'])}
+
+Provide in markdown format:
+1. **North Star Metric** — the single most important metric and why
+2. **Acquisition Metrics** — CAC, install rate, organic vs paid split, channel effectiveness
+3. **Activation Metrics** — onboarding completion, time to value, setup rate
+4. **Engagement Metrics** — DAU/MAU, session duration, feature adoption, stickiness ratio
+5. **Retention Metrics** — D1/D7/D30 retention, churn rate, cohort analysis approach
+6. **Revenue Metrics** — ARPU, ARPPU, MRR, conversion rate, LTV
+7. **KPI Dashboard** — markdown table showing metric, target, measurement frequency
+8. **Leading vs Lagging Indicators** — which metrics predict future success
+
+Include specific target numbers and benchmarks for the industry.${citationInstruction}`,
+
+                roadmap: `You are a senior product strategist. Create a detailed product roadmap.
+
+Product concept: "${userPrompt}"
+${ctx(['target_audience', 'features', 'market_potential', 'monetization', 'kpis'])}
+
+Provide in markdown format:
+1. **Pre-Launch Phase (Month 1-2)** — research, validation, prototype
+2. **MVP Launch (Month 3-4)** — core features, soft launch, initial users
+3. **Growth Phase (Month 5-8)** — feature expansion, marketing push, paid features
+4. **Scale Phase (Month 9-12)** — optimization, new markets, partnerships
+5. **Year 2 Vision** — major milestones and strategic goals
+
+For each phase include:
+- Key deliverables (specific features)
+- Success criteria (metrics)
+- Resources needed
+- Key risks and mitigations
+- Dependencies
+
+Use a markdown table for the timeline overview. Be specific about what gets built when.${citationInstruction}`,
+
+                risks: `You are a senior risk analyst. Create a comprehensive risk assessment.
+
+Product concept: "${userPrompt}"
+${ctx(['target_audience', 'competitor_analysis', 'market_potential', 'swot', 'monetization', 'roadmap'])}
+
+Provide in markdown format:
+1. **Risk Matrix** — markdown table: Risk | Likelihood (1-5) | Impact (1-5) | Risk Score | Mitigation
+2. **Market Risks** — competition, timing, demand uncertainty
+3. **Technical Risks** — scalability, security, performance, reliability
+4. **Financial Risks** — funding, burn rate, revenue delays
+5. **Regulatory & Legal Risks** — compliance, data privacy, IP
+6. **Operational Risks** — team, execution, vendor dependencies
+7. **Reputational Risks** — brand, PR, user trust
+8. **Contingency Plans** — for top 5 risks, detailed plan B
+9. **Risk Monitoring Plan** — how to track and respond to emerging risks
+
+Be specific to this product, not generic. Rate each risk numerically.${citationInstruction}`
+            };
+        }
+
+        // ─── UI Helpers ───
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(20px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function createSectionCard(section, index) {
+            return `
+    <div class="section-card expanded" id="card-${section.id}" style="animation-delay: ${index * 0.05}s">
+        <div class="section-card__header" onclick="toggleSection('${section.id}')">
+            <div class="section-card__header-left">
+                <div class="section-card__icon" style="background: ${section.color}15; color: ${section.color}">
+                    ${section.icon}
+                </div>
+                <div>
+                    <div class="section-card__number">SECTION ${index + 1} OF 11</div>
+                    <div class="section-card__title">${section.title}</div>
+                </div>
+            </div>
+            <div class="section-card__header-right">
+                <div class="section-card__chevron">▼</div>
+            </div>
+        </div>
+        <div class="section-card__body">
+            <div class="section-card__content" id="content-${section.id}">
+                <div class="section-card__edit-indicator" id="editind-${section.id}">✏️ Editing — click outside to save</div>
+                <div class="markdown-body">
+                    <div class="skeleton skeleton-line" style="width:100%"></div>
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
+                </div>
+            </div>
+            <div class="section-card__editor" id="editor-${section.id}">
+                <textarea id="editarea-${section.id}"></textarea>
+            </div>
+            <div class="section-card__actions">
+                <button class="btn btn--secondary btn--small" onclick="toggleEdit('${section.id}')" id="editbtn-${section.id}">
+                    ✏️ Edit
+                </button>
+                <button class="btn btn--secondary btn--small" onclick="regenerateSection('${section.id}')">
+                    🔄 Regenerate
+                </button>
+            </div>
+        </div>
+    </div>`;
+        }
+
+        function updateProgress(currentIndex, status = 'active') {
+            const fill = document.getElementById('progressFill');
+            const count = document.getElementById('progressCount');
+            const steps = document.querySelectorAll('.progress-step');
+
+            const pct = ((currentIndex + (status === 'done' ? 1 : 0.5)) / SECTIONS.length) * 100;
+            fill.style.width = `${pct}%`;
+            count.textContent = `${status === 'done' ? currentIndex + 1 : currentIndex} / ${SECTIONS.length}`;
+
+            steps.forEach((step, i) => {
+                step.className = 'progress-step';
+                if (i < currentIndex) step.classList.add('done');
+                else if (i === currentIndex) step.classList.add(status);
+            });
+        }
+
+        // ─── Core Analysis Pipeline ───
+        async function startAnalysis() {
+            const geminiKey = document.getElementById('geminiKey').value.trim();
+            const serpKey = document.getElementById('serpKey').value.trim();
+            const userPrompt = document.getElementById('promptInput').value.trim();
+
+            if (!geminiKey) { showToast('Please enter your Gemini API key.', 'error'); return; }
+            if (!userPrompt) { showToast('Please enter a product prompt.', 'error'); return; }
+
+            // Save keys to localStorage
+            localStorage.setItem('pa_gemini_key', geminiKey);
+            localStorage.setItem('pa_serp_key', serpKey);
+
+            isGenerating = true;
+            abortController = new AbortController();
+            analysisData = {};
+
+            // UI Updates
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('stopBtn').style.display = 'inline-flex';
+            document.getElementById('progressTracker').classList.add('active');
+            document.getElementById('results').classList.add('active');
+
+            // Build progress steps
+            const stepsEl = document.getElementById('progressSteps');
+            stepsEl.innerHTML = SECTIONS.map(s => `<div class="progress-step">${s.icon} ${s.title.split('(')[0].trim()}</div>`).join('');
+
+            // Build section cards
+            const container = document.getElementById('sectionsContainer');
+            container.innerHTML = SECTIONS.map((s, i) => createSectionCard(s, i)).join('');
+
+            // Scroll to progress
+            document.getElementById('progressTracker').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Step 0: Fetch app store data (if SerpAPI key provided)
+            let appStoreData = null;
+            if (serpKey) {
+                document.getElementById('progressTitle').textContent = '🔍 Searching app stores for real competitor data...';
+                try {
+                    // Extract a search query from the prompt
+                    const searchQuery = await callGemini(
+                        `Extract a concise 2-4 word app store search query from this product concept. Return ONLY the search query, nothing else: "${userPrompt}"`,
+                        geminiKey
+                    );
+                    appStoreData = await searchAppStores(searchQuery.trim(), serpKey);
+                    if (appStoreData) {
+                        showToast(`Found ${appStoreData.googlePlayApps.length} Google Play + ${appStoreData.appStoreApps.length} App Store results`);
+                    }
+                } catch (e) {
+                    console.warn('App store search skipped:', e);
+                }
+            }
+
+            // Generate each section sequentially
+            const prompts = buildPrompts(userPrompt, appStoreData, analysisData);
+
+            for (let i = 0; i < SECTIONS.length; i++) {
+                if (!isGenerating) break;
+
+                const section = SECTIONS[i];
+                document.getElementById('progressTitle').textContent = `Generating: ${section.title}...`;
+                updateProgress(i, 'active');
+
+                // Scroll to current card
+                const card = document.getElementById(`card-${section.id}`);
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                try {
+                    // Rebuild prompts with accumulated context
+                    const freshPrompts = buildPrompts(userPrompt, appStoreData, analysisData);
+                    const content = await callGemini(freshPrompts[section.id], geminiKey);
+
+                    analysisData[section.id] = content;
+
+                    // Render content
+                    const contentEl = document.getElementById(`content-${section.id}`);
+                    contentEl.innerHTML = `<div class="section-card__edit-indicator" id="editind-${section.id}">✏️ Editing — click outside to save</div><div class="markdown-body">${marked.parse(content)}</div>`;
+
+                    // Store raw in editor textarea
+                    document.getElementById(`editarea-${section.id}`).value = content;
+
+                    updateProgress(i, 'done');
+
+                } catch (e) {
+                    if (e.name === 'AbortError') break;
+
+                    const contentEl = document.getElementById(`content-${section.id}`);
+                    contentEl.innerHTML = `<div class="markdown-body" style="color:var(--danger)">⚠️ Failed to generate: ${e.message}</div>`;
+                    analysisData[section.id] = `> Error: ${e.message}`;
+
+                    const steps = document.querySelectorAll('.progress-step');
+                    steps[i].classList.add('error');
+
+                    showToast(`Error in ${section.title}: ${e.message}`, 'error');
+                }
+
+                // Small delay between API calls to avoid rate limiting
+                if (i < SECTIONS.length - 1 && isGenerating) {
+                    await new Promise(r => setTimeout(r, 500));
+                }
+            }
+
+            // Done
+            isGenerating = false;
+            document.getElementById('generateBtn').disabled = false;
+            document.getElementById('stopBtn').style.display = 'none';
+            document.getElementById('progressTitle').textContent = '✅ Analysis complete!';
+            document.getElementById('progressFill').style.width = '100%';
+
+            if (Object.keys(analysisData).length > 0) {
+                showToast('Analysis complete! All sections generated.');
+            }
+        }
+
+        function stopAnalysis() {
+            isGenerating = false;
+            if (abortController) abortController.abort();
+            document.getElementById('generateBtn').disabled = false;
+            document.getElementById('stopBtn').style.display = 'none';
+            document.getElementById('progressTitle').textContent = '⏹ Analysis stopped';
+            showToast('Analysis stopped by user.', 'error');
+        }
+
+        // ─── Section Actions ───
+        function toggleSection(id) {
+            const card = document.getElementById(`card-${id}`);
+            card.classList.toggle('expanded');
+        }
+
+        function toggleEdit(id) {
+            const card = document.getElementById(`card-${id}`);
+            const btn = document.getElementById(`editbtn-${id}`);
+            const contentEl = document.getElementById(`content-${id}`);
+            const mdBody = contentEl.querySelector('.markdown-body');
+
+            if (card.classList.contains('editing')) {
+                // Save edits — capture the edited HTML and store
+                if (mdBody) {
+                    mdBody.contentEditable = 'false';
+                    // Update the raw markdown data from the edited HTML
+                    // We keep the HTML as the source of truth after editing
+                    analysisData[id] = mdBody.innerText;
+                }
+                card.classList.remove('editing');
+                btn.innerHTML = '✏️ Edit';
+                showToast('Changes saved!');
+            } else {
+                // Enter inline edit mode
+                if (mdBody) {
+                    mdBody.contentEditable = 'true';
+                    mdBody.focus();
+                }
+                card.classList.add('editing');
+                btn.innerHTML = '💾 Save';
+            }
+        }
+
+        async function regenerateSection(id) {
+            const geminiKey = document.getElementById('geminiKey').value.trim();
+            const serpKey = document.getElementById('serpKey').value.trim();
+            const userPrompt = document.getElementById('promptInput').value.trim();
+
+            if (!geminiKey || !userPrompt) {
+                showToast('API key and prompt required.', 'error');
+                return;
+            }
+
+            const section = SECTIONS.find(s => s.id === id);
+            const contentEl = document.getElementById(`content-${id}`);
+            const card = document.getElementById(`card-${id}`);
+
+            // Exit edit mode if active
+            if (card.classList.contains('editing')) {
+                card.classList.remove('editing');
+                document.getElementById(`editbtn-${id}`).innerHTML = '✏️ Edit';
+            }
+
+            // Show loading
+            contentEl.innerHTML = `<div class="markdown-body" style="display:flex;align-items:center;gap:10px;"><div class="spinner"></div> Regenerating ${section.title}...</div>`;
+
+            try {
+                abortController = new AbortController();
+                const freshPrompts = buildPrompts(userPrompt, null, analysisData);
+                const content = await callGemini(freshPrompts[id], geminiKey);
+
+                analysisData[id] = content;
+                contentEl.innerHTML = `<div class="section-card__edit-indicator" id="editind-${id}">✏️ Editing — click outside to save</div><div class="markdown-body">${marked.parse(content)}</div>`;
+                document.getElementById(`editarea-${id}`).value = content;
+                showToast(`${section.title} regenerated!`);
+            } catch (e) {
+                contentEl.innerHTML = `<div class="markdown-body" style="color:var(--danger)">⚠️ Regeneration failed: ${e.message}</div>`;
+                showToast(`Error: ${e.message}`, 'error');
+            }
+        }
+
+        // ─── Expand / Collapse ───
+        function expandAll() {
+            document.querySelectorAll('.section-card').forEach(c => c.classList.add('expanded'));
+        }
+
+        function collapseAll() {
+            document.querySelectorAll('.section-card').forEach(c => c.classList.remove('expanded'));
+        }
+
+        // ─── Export ───
+        function exportMarkdown() {
+            if (!Object.keys(analysisData).length) {
+                showToast('No analysis to export.', 'error');
+                return;
+            }
+
+            const prompt = document.getElementById('promptInput').value.trim();
+            let md = `# Product Analysis Report\n\n`;
+            md += `> **Prompt:** ${prompt}\n`;
+            md += `> **Generated:** ${new Date().toLocaleString()}\n\n---\n\n`;
+
+            SECTIONS.forEach((section, i) => {
+                if (analysisData[section.id]) {
+                    md += `## ${i + 1}. ${section.icon} ${section.title}\n\n`;
+                    md += analysisData[section.id];
+                    md += '\n\n---\n\n';
+                }
+            });
+
+            const blob = new Blob([md], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `product-analysis-${Date.now()}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Markdown file downloaded!');
+        }
+
+        function exportWord() {
+            if (!Object.keys(analysisData).length) {
+                showToast('No analysis to export.', 'error');
+                return;
+            }
+
+            const prompt = document.getElementById('promptInput').value.trim();
+            const now = new Date().toLocaleString();
+
+            // Build HTML content for all sections
+            let sectionsHtml = '';
+            SECTIONS.forEach((section, i) => {
+                if (analysisData[section.id]) {
+                    const contentEl = document.getElementById(`content-${section.id}`);
+                    const mdBody = contentEl ? contentEl.querySelector('.markdown-body') : null;
+                    const html = mdBody ? mdBody.innerHTML : marked.parse(analysisData[section.id]);
+                    sectionsHtml += `
+                        <h2 style="color:#4a3590; border-bottom: 2px solid #8b5cf6; padding-bottom: 8px; margin-top: 30px;">
+                            ${section.icon} ${i + 1}. ${section.title}
+                        </h2>
+                        ${html}
+                        <br/><hr style="border:none; border-top:1px solid #e0e0e0; margin: 20px 0;"/>
+                    `;
+                }
+            });
+
+            const fullHtml = `
+<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>Product Analysis Report</title>
+<!--[if gte mso 9]>
+<xml>
+<w:WordDocument>
+<w:View>Print</w:View>
+<w:Zoom>100</w:Zoom>
+</w:WordDocument>
+</xml>
+<![endif]-->
+<style>
+    body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; color: #222; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 40px; }
+    h1 { color: #1a1a2e; font-size: 28px; border-bottom: 3px solid #8b5cf6; padding-bottom: 10px; }
+    h2 { color: #4a3590; font-size: 20px; margin-top: 28px; }
+    h3 { color: #333; font-size: 16px; }
+    h4 { color: #555; font-size: 14px; }
+    p { margin: 8px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+    th { background: #f3f0ff; color: #333; padding: 10px 12px; border: 1px solid #ddd; text-align: left; font-weight: 600; }
+    td { padding: 8px 12px; border: 1px solid #ddd; }
+    tr:nth-child(even) { background: #fafafa; }
+    ul, ol { padding-left: 24px; margin: 8px 0; }
+    li { margin-bottom: 4px; }
+    blockquote { border-left: 3px solid #8b5cf6; padding: 8px 16px; margin: 12px 0; background: #f8f7ff; }
+    strong { color: #111; }
+    em { color: #6d5bae; }
+    code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; font-size: 12px; }
+    a { color: #6d5bae; }
+    .cover-info { color: #666; font-size: 14px; margin-bottom: 30px; }
+</style>
+</head>
+<body>
+    <h1>📊 Product Analysis Report</h1>
+    <div class="cover-info">
+        <p><strong>Product Concept:</strong> ${prompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+        <p><strong>Generated:</strong> ${now}</p>
+        <p><strong>Sections:</strong> ${SECTIONS.filter(s => analysisData[s.id]).length} of ${SECTIONS.length}</p>
+    </div>
+    <hr style="border:none; border-top:2px solid #8b5cf6; margin: 20px 0;"/>
+    ${sectionsHtml}
+    <br/>
+    <p style="color:#999; font-size:12px; text-align:center;">Generated by Product Analyst Pro</p>
+</body>
+</html>`;
+
+            const blob = new Blob([fullHtml], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `product-analysis-${Date.now()}.doc`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Word document downloaded!');
+        }
+
+        function exportPDF() {
+            if (!Object.keys(analysisData).length) {
+                showToast('No analysis to export.', 'error');
+                return;
+            }
+            expandAll();
+            setTimeout(() => window.print(), 300);
+        }
+
+        // ─── Init ───
+        document.addEventListener('DOMContentLoaded', () => {
+            // Restore saved keys
+            const savedGemini = localStorage.getItem('pa_gemini_key');
+            const savedSerp = localStorage.getItem('pa_serp_key');
+            if (savedGemini) document.getElementById('geminiKey').value = savedGemini;
+            if (savedSerp) document.getElementById('serpKey').value = savedSerp;
+
+            // Keyboard shortcut: Ctrl+Enter to generate
+            document.getElementById('promptInput').addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    startAnalysis();
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>

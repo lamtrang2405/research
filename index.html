@@ -1127,6 +1127,9 @@
                             style="color: var(--accent-light); text-decoration: none; font-size: 11px;">(Get free
                             key)</a></label>
                     <input type="password" id="geminiKey" placeholder="key1, key2, key3..." autocomplete="off">
+                    <div class="prompt-area__hint" style="margin-top: 8px; font-size: 11px;">
+                        💡 Tip: Add multiple keys (comma-separated) to avoid "Quota exceeded" errors on the free tier.
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>SerpAPI Key <span class="optional">(Optional — for real app store data)</span></label>
@@ -1254,9 +1257,10 @@
         let apiKeys = [];
         let currentKeyIndex = 0;
 
-        // ─── Gemini API with Rotation ───
+        const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+        // ─── Gemini API with Rotation & Retry ───
         async function callGemini(prompt, initialKeys = null) {
-            // Use provided keys or fall back to global state
             const targetKeys = initialKeys || apiKeys;
 
             if (!targetKeys || targetKeys.length === 0) {
@@ -1264,15 +1268,15 @@
             }
 
             let lastError = null;
+            const originalTitle = document.getElementById('progressTitle').textContent;
 
-            // Try keys starting from currentKeyIndex
             for (let attempt = 0; attempt < targetKeys.length; attempt++) {
                 const keyIndex = (currentKeyIndex + attempt) % targetKeys.length;
                 const apiKey = targetKeys[keyIndex];
 
                 try {
                     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-                    const response = await fetch(url, {
+                    let response = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         signal: abortController?.signal,
@@ -1286,25 +1290,69 @@
                         })
                     });
 
-                    if (response.status === 429 || response.status >= 500) {
-                        const errData = await response.json().catch(() => ({}));
-                        console.warn(`Key ${keyIndex} failed with status ${response.status}. Trying next key...`, errData);
-                        lastError = new Error(errData.error?.message || `API error: ${response.status}`);
-                        continue; // Try next key
+                    let errData = null;
+                    if (!response.ok) {
+                        errData = await response.json().catch(() => ({}));
+                    }
+
+                    // Handle Quota / Rate Limit (429)
+                    if (response.status === 429) {
+                        const errMsg = errData?.error?.message || "";
+                        console.warn(`Key ${keyIndex} hit quota. Message: ${errMsg}`);
+
+                        // Parse "retry in X.Xs" from the message
+                        const retryMatch = errMsg.match(/retry in ([\d\.]+)s/);
+                        if (retryMatch) {
+                            const waitSeconds = parseFloat(retryMatch[1]);
+                            const waitMs = (waitSeconds + 1) * 1000; // Add 1s buffer
+
+                            showToast(`Quota hit for key #${keyIndex + 1}. Waiting ${waitSeconds}s...`, 'warning');
+                            document.getElementById('progressTitle').textContent = `⏳ Waiting for quota (#${keyIndex + 1})...`;
+
+                            await sleep(waitMs);
+                            document.getElementById('progressTitle').textContent = originalTitle;
+
+                            // Retry current key once after waiting
+                            response = await fetch(url, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                signal: abortController?.signal,
+                                body: JSON.stringify({
+                                    contents: [{ parts: [{ text: prompt }] }],
+                                    generationConfig: { temperature: 0.8, topP: 0.95, maxOutputTokens: 4096 }
+                                })
+                            });
+
+                            if (response.ok) {
+                                const data = await response.json();
+                                currentKeyIndex = keyIndex;
+                                return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No content generated.';
+                            } else {
+                                errData = await response.json().catch(() => ({}));
+                            }
+                        }
+
+                        // If wait/retry failed or no retry suggestion, move to next key
+                        console.warn(`Key ${keyIndex} still failing. Trying next key.`);
+                        lastError = new Error(errData?.error?.message || `API error: ${response.status}`);
+                        continue;
+                    }
+
+                    if (response.status >= 500) {
+                        console.warn(`Key ${keyIndex} failed with status ${response.status}. Trying next key...`);
+                        lastError = new Error(errData?.error?.message || `API error: ${response.status}`);
+                        continue;
                     }
 
                     if (!response.ok) {
-                        const errData = await response.json().catch(() => ({}));
-                        throw new Error(errData.error?.message || `API error: ${response.status}`);
+                        throw new Error(errData?.error?.message || `API error: ${response.status}`);
                     }
 
                     const data = await response.json();
-
-                    // Success! Update global index to keep using this working key
                     currentKeyIndex = keyIndex;
 
                     if (attempt > 0) {
-                        showToast(`Switched to backup API key (#${keyIndex + 1})`, 'success');
+                        showToast(`Switched to working API key (#${keyIndex + 1})`, 'success');
                     }
 
                     return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No content generated.';
@@ -1313,10 +1361,13 @@
                     if (e.name === 'AbortError') throw e;
                     console.warn(`Attempt with key ${keyIndex} failed:`, e);
                     lastError = e;
-                    // If it's a network error or other retryable error, continue to next key
                 }
             }
 
+            const finalMsg = lastError?.message || "All API keys failed.";
+            if (finalMsg.toLowerCase().includes("quota")) {
+                throw new Error(`${finalMsg}\n\nTIP: All backup keys are exhausted or waiting. Try adding more keys or wait a few minutes.`);
+            }
             throw lastError || new Error("All API keys failed.");
         }
 

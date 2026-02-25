@@ -1132,6 +1132,19 @@
                     <label>SerpAPI Key <span class="optional">(Optional — for real app store data)</span></label>
                     <input type="password" id="serpKey" placeholder="Leave empty for AI-only mode" autocomplete="off">
                 </div>
+                <div class="form-group">
+                    <label>Target Language</label>
+                    <select id="targetLanguage">
+                        <option value="English" selected>English 🇺🇸</option>
+                        <option value="Vietnamese">Vietnamese 🇻🇳</option>
+                        <option value="Japanese">Japanese 🇯🇵</option>
+                        <option value="Chinese">Chinese 🇨🇳</option>
+                        <option value="Spanish">Spanish 🇪🇸</option>
+                        <option value="French">French 🇫🇷</option>
+                        <option value="German">German 🇩🇪</option>
+                        <option value="Korean">Korean 🇰🇷</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -1330,7 +1343,9 @@
         }
 
         // ─── Build Section Prompts ───
-        function buildPrompts(userPrompt, appStoreData, previousSections) {
+        function buildPrompts(userPrompt, appStoreData, previousSections, language = 'English') {
+            const langInstr = `\n\nCRITICAL: The entire response must be written in ${language}. All headings, descriptions, tables, and the "Sources & References" section must be in ${language}.`;
+
             const ctx = (keys) => {
                 const parts = keys.filter(k => previousSections[k]).map(k => {
                     const sec = SECTIONS.find(s => s.id === k);
@@ -1530,7 +1545,7 @@ Provide in markdown format:
 8. **Contingency Plans** — for top 5 risks, detailed plan B
 9. **Risk Monitoring Plan** — how to track and respond to emerging risks
 
-Be specific to this product, not generic. Rate each risk numerically.${citationInstruction}`
+Be specific to this product, not generic. Rate each risk numerically.${citationInstruction}${langInstr}`
             };
         }
 
@@ -1665,7 +1680,8 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
             }
 
             // Generate each section sequentially
-            const prompts = buildPrompts(userPrompt, appStoreData, analysisData);
+            const lang = document.getElementById('targetLanguage').value;
+            const prompts = buildPrompts(userPrompt, appStoreData, analysisData, lang);
 
             for (let i = 0; i < SECTIONS.length; i++) {
                 if (!isGenerating) break;
@@ -1680,7 +1696,7 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
 
                 try {
                     // Rebuild prompts with accumulated context
-                    const freshPrompts = buildPrompts(userPrompt, appStoreData, analysisData);
+                    const freshPrompts = buildPrompts(userPrompt, appStoreData, analysisData, lang);
                     const content = await callGemini(freshPrompts[section.id]);
 
                     analysisData[section.id] = content;
@@ -1794,7 +1810,8 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
 
             try {
                 abortController = new AbortController();
-                const freshPrompts = buildPrompts(userPrompt, null, analysisData);
+                const lang = document.getElementById('targetLanguage').value;
+                const freshPrompts = buildPrompts(userPrompt, null, analysisData, lang);
                 const content = await callGemini(freshPrompts[id]);
 
                 analysisData[id] = content;
@@ -1829,13 +1846,14 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
             refineBtn.disabled = true;
 
             try {
-                // Prepare context: Current analysis data
+                const lang = document.getElementById('targetLanguage').value;
                 const context = SECTIONS.filter(s => analysisData[s.id]).map(s => {
                     return `SECTION: ${s.id} (${s.title})\nCONTENT:\n${analysisData[s.id]}`;
                 }).join('\n\n---\n\n');
 
                 const refinementPrompt = `
 You are an expert product analyst helping a user refine a product analysis report.
+Target Language: ${lang}
 Current User Prompt: "${document.getElementById('promptInput').value.trim()}"
 
 CURRENT ANALYSIS CONTENT:
@@ -1844,19 +1862,20 @@ ${context}
 USER REQUEST: "${userInput}"
 
 INSTRUCTIONS:
-1. Address the user's request. You can provide an answer to a question AND/OR update specific sections of the analysis.
-2. If you decide to update sections, return the FULL NEW CONTENT for those sections.
+1. Address the user's request in ${lang}. You can provide an answer to a question AND/OR update specific sections of the analysis.
+2. If you decide to update sections, return the FULL NEW CONTENT for those sections in ${lang}.
 3. Your response must be a valid JSON object with the following format:
 {
-  "answer": "Your natural language response to the user's query.",
+  "answer": "Your natural language response to the user's query in ${lang}.",
   "updates": {
-    "section_id": "Fully updated markdown content for this section",
+    "section_id": "Fully updated markdown content for this section in ${lang}",
     ...
   }
 }
 4. Only include sections in "updates" that actually need changing.
 5. In your "answer", explain what changes you made.
 6. Ensure the markdown you return is high quality and follows the existing style.
+7. CRITICAL: Do NOT use any language other than ${lang} in your JSON response contents.
 
 RESPONSE FORMAT: (Only return the JSON object)
 `;
@@ -2058,8 +2077,15 @@ RESPONSE FORMAT: (Only return the JSON object)
             // Restore saved keys
             const savedGemini = localStorage.getItem('pa_gemini_key');
             const savedSerp = localStorage.getItem('pa_serp_key');
+            const savedLang = localStorage.getItem('pa_target_lang');
             if (savedGemini) document.getElementById('geminiKey').value = savedGemini;
             if (savedSerp) document.getElementById('serpKey').value = savedSerp;
+            if (savedLang) document.getElementById('targetLanguage').value = savedLang;
+
+            // Handle language change save
+            document.getElementById('targetLanguage').addEventListener('change', (e) => {
+                localStorage.setItem('pa_target_lang', e.target.value);
+            });
 
             // Keyboard shortcut: Ctrl+Enter to generate
             document.getElementById('promptInput').addEventListener('keydown', (e) => {

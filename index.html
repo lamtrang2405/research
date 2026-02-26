@@ -194,25 +194,24 @@
         }
 
         .provider-row {
-            display: flex;
+            display: grid;
+            grid-template-columns: 150px 1fr auto auto;
             gap: 12px;
             align-items: center;
         }
 
         .provider-row select {
-            width: 180px;
-            flex-shrink: 0;
+            min-width: 0;
         }
 
         .provider-row input {
-            flex: 1 1 120px;
-            min-width: 100px;
-            width: auto;
+            min-width: 0;
+            width: 100%;
         }
 
         .provider-row .btn-get-key {
-            flex-shrink: 0;
-            padding: 10px 14px;
+            white-space: nowrap;
+            padding: 10px 12px;
             font-size: 12px;
         }
 
@@ -258,11 +257,13 @@
             border-color: var(--accent);
         }
 
-        @media (max-width: 640px) {
-            .provider-row { flex-wrap: wrap; gap: 8px; }
-            .provider-row select { flex: 1 1 100%; min-width: 0; }
-            .provider-row input { flex: 1 1 100%; min-width: 0; }
-            .provider-row .btn-get-key { flex: 0 0 auto; }
+        @media (max-width: 700px) {
+            .provider-row {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .provider-row select { grid-column: 1 / -1; }
+            .provider-row input { grid-column: 1 / -1; }
         }
 
         .form-group {
@@ -1381,8 +1382,9 @@
                             <option value="grok">Grok (xAI) — grok-3-mini</option>
                             <option value="claude">Claude (Anthropic)</option>
                             <option value="openrouter">OpenRouter (many models)</option>
+                            <option value="deepseek">DeepSeek</option>
                         </select>
-                        <input type="text" id="keyPrimary" placeholder="Paste API key here (Ctrl+V)" autocomplete="off">
+                        <input type="text" id="keyPrimary" placeholder="Paste your API key" autocomplete="off">
                         <button type="button" class="btn btn--secondary btn--small btn-get-key" onclick="pasteFromClipboard('keyPrimary')">📋 Paste</button>
                         <a class="btn btn--secondary btn--small btn-get-key" id="getKeyPrimary" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">🔑 Get key</a>
                     </div>
@@ -1397,8 +1399,9 @@
                             <option value="grok">Grok</option>
                             <option value="claude">Claude</option>
                             <option value="openrouter">OpenRouter</option>
+                            <option value="deepseek">DeepSeek</option>
                         </select>
-                        <input type="text" id="keyFallback1" placeholder="API key (optional)" autocomplete="off">
+                        <input type="text" id="keyFallback1" placeholder="Optional key" autocomplete="off">
                         <button type="button" class="btn btn--secondary btn--small btn-get-key" onclick="pasteFromClipboard('keyFallback1')">📋 Paste</button>
                         <a class="btn btn--secondary btn--small btn-get-key" id="getKeyFallback1" href="#" target="_blank" rel="noopener" style="visibility:hidden;">🔑 Get key</a>
                     </div>
@@ -1413,8 +1416,9 @@
                             <option value="grok">Grok</option>
                             <option value="claude">Claude</option>
                             <option value="openrouter">OpenRouter</option>
+                            <option value="deepseek">DeepSeek</option>
                         </select>
-                        <input type="text" id="keyFallback2" placeholder="API key (optional)" autocomplete="off">
+                        <input type="text" id="keyFallback2" placeholder="Optional key" autocomplete="off">
                         <button type="button" class="btn btn--secondary btn--small btn-get-key" onclick="pasteFromClipboard('keyFallback2')">📋 Paste</button>
                         <a class="btn btn--secondary btn--small btn-get-key" id="getKeyFallback2" href="#" target="_blank" rel="noopener" style="visibility:hidden;">🔑 Get key</a>
                     </div>
@@ -1428,6 +1432,7 @@
                         <a href="https://console.anthropic.com/" target="_blank" rel="noopener">Claude</a>
                         <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">OpenRouter</a>
                         <a href="https://serpapi.com/manage-api-key" target="_blank" rel="noopener">SerpAPI</a>
+                        <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">DeepSeek</a>
                     </div>
                 </div>
                 <div class="form-group">
@@ -1449,7 +1454,7 @@
                 </div>
             </div>
             <div class="prompt-area__hint" style="margin-top:12px;font-size:11px;">
-                💡 Quota exceeded? Add fallback providers (OpenAI, Grok, OpenRouter) — the app will auto-switch when primary fails.
+                💡 Quota exceeded? Add fallback providers (OpenAI, Grok, DeepSeek, OpenRouter) — the app will auto-switch when primary fails.
             </div>
         </div>
 
@@ -1643,7 +1648,8 @@
             openai: 'https://platform.openai.com/api-keys',
             grok: 'https://console.x.ai/',
             claude: 'https://console.anthropic.com/',
-            openrouter: 'https://openrouter.ai/keys'
+            openrouter: 'https://openrouter.ai/keys',
+            deepseek: 'https://platform.deepseek.com/api_keys'
         };
 
         async function pasteFromClipboard(inputId) {
@@ -1686,7 +1692,8 @@
             openai: { name: 'OpenAI', model: 'gpt-4o-mini', url: () => 'https://api.openai.com/v1/chat/completions' },
             grok: { name: 'Grok', model: 'grok-3-mini', url: () => 'https://api.x.ai/v1/chat/completions' },
             claude: { name: 'Claude', model: 'claude-3-5-haiku', url: () => 'https://api.anthropic.com/v1/messages' },
-            openrouter: { name: 'OpenRouter', model: 'google/gemini-2.0-flash', url: () => 'https://openrouter.ai/api/v1/chat/completions' }
+            openrouter: { name: 'OpenRouter', model: 'google/gemini-2.0-flash', url: () => 'https://openrouter.ai/api/v1/chat/completions' },
+            deepseek: { name: 'DeepSeek', model: 'deepseek-chat', url: () => 'https://api.deepseek.com/v1/chat/completions' }
         };
 
         async function callProvider(provider, apiKey, prompt) {
@@ -1706,7 +1713,7 @@
                 return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No content generated.';
             }
 
-            if (provider === 'openai' || provider === 'grok' || provider === 'openrouter') {
+            if (provider === 'openai' || provider === 'grok' || provider === 'openrouter' || provider === 'deepseek') {
                 opts.body = JSON.stringify({
                     model: provider === 'openrouter' ? info.model : (provider === 'openai' ? 'gpt-4o-mini' : info.model),
                     messages: [{ role: 'user', content: prompt }],
@@ -1792,7 +1799,7 @@
             const finalMsg = lastError?.message || "All providers failed.";
             const tip = config.length > 1
                 ? "Try adding more fallback providers (OpenAI, OpenRouter) or wait a few minutes."
-                : "Add fallback providers (OpenAI, Grok, OpenRouter) in config — app will auto-switch when one hits quota.";
+                : "Add fallback providers (OpenAI, Grok, DeepSeek, OpenRouter) in config — app will auto-switch when one hits quota.";
             throw new Error(`${finalMsg}\n\nTIP: ${tip}`);
         }
 
@@ -2114,7 +2121,7 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
             providerConfig = buildProviderConfig();
 
             if (!providerConfig.length) {
-                showToast('Please add at least one AI provider and API key (Gemini, OpenAI, Grok, etc.).', 'error');
+                showToast('Please add at least one AI provider and API key (Gemini, OpenAI, Grok, DeepSeek, etc.).', 'error');
                 return;
             }
             if (!userPrompt) { showToast('Please enter a product prompt.', 'error'); return; }

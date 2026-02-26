@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <style>
         *,
         *::before,
@@ -186,6 +187,82 @@
             .config-grid {
                 grid-template-columns: 1fr;
             }
+        }
+
+        .form-group--full {
+            grid-column: 1 / -1;
+        }
+
+        .provider-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .provider-row select {
+            width: 180px;
+            flex-shrink: 0;
+        }
+
+        .provider-row input {
+            flex: 1 1 120px;
+            min-width: 100px;
+            width: auto;
+        }
+
+        .provider-row .btn-get-key {
+            flex-shrink: 0;
+            padding: 10px 14px;
+            font-size: 12px;
+        }
+
+        .provider-row .btn-get-key:hover {
+            color: var(--accent-light);
+        }
+
+        .provider-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .provider-links__title {
+            width: 100%;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .provider-links a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: var(--accent-light);
+            background: var(--accent-glow);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: var(--radius-xs);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .provider-links a:hover {
+            background: rgba(139, 92, 246, 0.25);
+            border-color: var(--accent);
+        }
+
+        @media (max-width: 640px) {
+            .provider-row { flex-wrap: wrap; gap: 8px; }
+            .provider-row select { flex: 1 1 100%; min-width: 0; }
+            .provider-row input { flex: 1 1 100%; min-width: 0; }
+            .provider-row .btn-get-key { flex: 0 0 auto; }
         }
 
         .form-group {
@@ -839,6 +916,10 @@
             border-left: 3px solid var(--danger);
         }
 
+        .toast.info {
+            border-left: 3px solid var(--accent-2);
+        }
+
         @keyframes toastIn {
             from {
                 opacity: 0;
@@ -1103,6 +1184,176 @@
         .refining-status.active {
             display: flex;
         }
+
+        /* ─── Feature Review Modal & User Flow ─── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            max-width: 520px;
+            width: 100%;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+        }
+
+        .modal__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal__title {
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .modal__close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 20px;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .modal__close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal__body {
+            padding: 20px 24px;
+            overflow-y: auto;
+        }
+
+        .feature-review-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .feature-review-item:last-child {
+            border-bottom: none;
+        }
+
+        .feature-review-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .feature-review-item__label {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .feature-review-item.passed input:checked + .feature-review-item__label {
+            color: var(--success);
+        }
+
+        .modal__footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-flow-section {
+            display: none;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+
+        .user-flow-section.active {
+            display: block;
+            animation: cardSlideIn 0.4s ease both;
+        }
+
+        .user-flow-section__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px;
+            cursor: pointer;
+            user-select: none;
+            transition: background var(--transition);
+        }
+
+        .user-flow-section__header:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .user-flow-section__content {
+            padding: 0 24px 24px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .user-flow-section.expanded .user-flow-section__content {
+            max-height: 8000px;
+        }
+
+        .user-flow-section.expanded .user-flow-section__header .section-card__chevron {
+            transform: rotate(180deg);
+        }
+
+        .user-flow-section .mermaid {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            margin: 16px 0;
+        }
+
+        .user-flow-section .user-flow-diagram {
+            min-height: 120px;
+        }
+
+        .user-flow-section__actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
     </style>
 </head>
 
@@ -1120,15 +1371,63 @@
         <!-- ─── Config Panel ─── -->
         <div class="config-panel">
             <div class="config-panel__title">⚙️ Configuration</div>
-            <div class="config-grid">
-                <div class="form-group">
-                    <label>Gemini API Keys <span class="optional">(Comma-separated for backup)</span> <a
-                            href="https://aistudio.google.com/apikey" target="_blank"
-                            style="color: var(--accent-light); text-decoration: none; font-size: 11px;">(Get free
-                            key)</a></label>
-                    <input type="text" id="geminiKey" placeholder="key1, key2, key3..." autocomplete="off">
-                    <div class="prompt-area__hint" style="margin-top: 8px; font-size: 11px;">
-                        💡 Tip: Add multiple keys (comma-separated) to avoid "Quota exceeded" errors on the free tier.
+            <div class="config-grid config-grid--ai-providers">
+                <div class="form-group form-group--full">
+                    <label>AI Provider (Primary)</label>
+                    <div class="provider-row">
+                        <select id="providerPrimary" onchange="updateGetKeyLinks()">
+                            <option value="gemini" selected>Gemini (Google)</option>
+                            <option value="openai">OpenAI (GPT-4o)</option>
+                            <option value="grok">Grok (xAI) — grok-3-mini</option>
+                            <option value="claude">Claude (Anthropic)</option>
+                            <option value="openrouter">OpenRouter (many models)</option>
+                        </select>
+                        <input type="text" id="keyPrimary" placeholder="Paste API key here (Ctrl+V)" autocomplete="off">
+                        <button type="button" class="btn btn--secondary btn--small btn-get-key" onclick="pasteFromClipboard('keyPrimary')">📋 Paste</button>
+                        <a class="btn btn--secondary btn--small btn-get-key" id="getKeyPrimary" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">🔑 Get key</a>
+                    </div>
+                </div>
+                <div class="form-group form-group--full">
+                    <label>Fallback 1 <span class="optional">(Used if primary hits quota)</span></label>
+                    <div class="provider-row">
+                        <select id="providerFallback1" onchange="updateGetKeyLinks()">
+                            <option value="">None</option>
+                            <option value="gemini">Gemini</option>
+                            <option value="openai">OpenAI</option>
+                            <option value="grok">Grok</option>
+                            <option value="claude">Claude</option>
+                            <option value="openrouter">OpenRouter</option>
+                        </select>
+                        <input type="text" id="keyFallback1" placeholder="API key (optional)" autocomplete="off">
+                        <button type="button" class="btn btn--secondary btn--small btn-get-key" onclick="pasteFromClipboard('keyFallback1')">📋 Paste</button>
+                        <a class="btn btn--secondary btn--small btn-get-key" id="getKeyFallback1" href="#" target="_blank" rel="noopener" style="visibility:hidden;">🔑 Get key</a>
+                    </div>
+                </div>
+                <div class="form-group form-group--full">
+                    <label>Fallback 2 <span class="optional">(Optional)</span></label>
+                    <div class="provider-row">
+                        <select id="providerFallback2" onchange="updateGetKeyLinks()">
+                            <option value="">None</option>
+                            <option value="gemini">Gemini</option>
+                            <option value="openai">OpenAI</option>
+                            <option value="grok">Grok</option>
+                            <option value="claude">Claude</option>
+                            <option value="openrouter">OpenRouter</option>
+                        </select>
+                        <input type="text" id="keyFallback2" placeholder="API key (optional)" autocomplete="off">
+                        <button type="button" class="btn btn--secondary btn--small btn-get-key" onclick="pasteFromClipboard('keyFallback2')">📋 Paste</button>
+                        <a class="btn btn--secondary btn--small btn-get-key" id="getKeyFallback2" href="#" target="_blank" rel="noopener" style="visibility:hidden;">🔑 Get key</a>
+                    </div>
+                </div>
+                <div class="form-group form-group--full">
+                    <div class="provider-links">
+                        <span class="provider-links__title">📋 Get API keys from platforms:</span>
+                        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Gemini (free)</a>
+                        <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">OpenAI</a>
+                        <a href="https://console.x.ai/" target="_blank" rel="noopener">Grok (xAI)</a>
+                        <a href="https://console.anthropic.com/" target="_blank" rel="noopener">Claude</a>
+                        <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">OpenRouter</a>
+                        <a href="https://serpapi.com/manage-api-key" target="_blank" rel="noopener">SerpAPI</a>
                     </div>
                 </div>
                 <div class="form-group">
@@ -1148,6 +1447,9 @@
                         <option value="Korean">Korean 🇰🇷</option>
                     </select>
                 </div>
+            </div>
+            <div class="prompt-area__hint" style="margin-top:12px;font-size:11px;">
+                💡 Quota exceeded? Add fallback providers (OpenAI, Grok, OpenRouter) — the app will auto-switch when primary fails.
             </div>
         </div>
 
@@ -1200,6 +1502,66 @@
                 </div>
             </div>
             <div id="sectionsContainer"></div>
+
+            <!-- ─── User Flow Section (generated on demand) ─── -->
+            <div class="user-flow-section" id="userFlowSection">
+                <div class="user-flow-section__header" onclick="toggleUserFlowSection()">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <span style="font-size:20px;">🔄</span>
+                        <div>
+                            <div style="font-size:11px;color:var(--text-muted);">GENERATED FROM PASS REVIEW</div>
+                            <div class="section-card__title">Product User Flow</div>
+                        </div>
+                    </div>
+                    <div class="section-card__chevron" id="userFlowChevron">▼</div>
+                </div>
+                <div class="user-flow-section__content" id="userFlowContent">
+                    <div class="markdown-body user-flow-diagram" id="userFlowDiagram"></div>
+                    <div class="user-flow-section__actions" id="userFlowActions" style="display:none;">
+                        <button class="btn btn--secondary btn--small" onclick="exportUserFlowSVG()" title="Download user flow diagram as SVG (drag into Figma)">
+                            📥 Export SVG for Figma
+                        </button>
+                        <button class="btn btn--primary btn--small" onclick="generateFigmaDesignSpec()" id="generateFigmaBtn" title="Generate Figma-ready design spec from user flow">
+                            📐 Generate Figma Design
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── Figma Design Spec Modal ─── -->
+            <div class="modal-overlay" id="figmaSpecModal" onclick="if(event.target===this)closeFigmaSpecModal()">
+                <div class="modal" style="max-width:720px;max-height:90vh;">
+                    <div class="modal__header">
+                        <span class="modal__title">📐 Figma Design Spec</span>
+                        <button class="modal__close" onclick="closeFigmaSpecModal()">×</button>
+                    </div>
+                    <div class="modal__body" id="figmaSpecBody" style="overflow-y:auto;"></div>
+                    <div class="modal__footer">
+                        <button class="btn btn--secondary" onclick="closeFigmaSpecModal()">Close</button>
+                        <button class="btn btn--primary" onclick="exportFigmaSpecHTML()">📥 Download as HTML</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── Feature Review Modal ─── -->
+            <div class="modal-overlay" id="featureReviewModal" onclick="if(event.target===this)closeFeatureReviewModal()">
+                <div class="modal">
+                    <div class="modal__header">
+                        <span class="modal__title">✓ Mark Features as Pass Review</span>
+                        <button class="modal__close" onclick="closeFeatureReviewModal()">×</button>
+                    </div>
+                    <div class="modal__body" id="featureReviewBody">
+                        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
+                            Select the features that have passed review. These will be used to generate the product user flow.
+                        </p>
+                        <div id="featureReviewList"></div>
+                    </div>
+                    <div class="modal__footer">
+                        <button class="btn btn--secondary" onclick="closeFeatureReviewModal()">Cancel</button>
+                        <button class="btn btn--primary" onclick="confirmFeatureReview()">Done</button>
+                    </div>
+                </div>
+            </div>
 
             <!-- ─── Q&A Section ─── -->
             <div class="qa-container" id="qaContainer">
@@ -1254,121 +1616,184 @@
         let analysisData = {};
         let abortController = null;
         let isGenerating = false;
-        let apiKeys = [];
+        let providerConfig = [];  // [{ provider, keys }] in priority order
+        let currentProviderIndex = 0;
         let currentKeyIndex = 0;
+        let featuresPassedReview = [];  // Array of feature names marked as pass review
+        let userFlowData = null;       // { mermaid, description } from last user flow generation
 
         const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-        // ─── Gemini API with Rotation & Retry ───
-        async function callGemini(prompt, initialKeys = null) {
-            const targetKeys = initialKeys || apiKeys;
+        // ─── Build provider config from UI ───
+        function buildProviderConfig() {
+            const config = [];
+            const add = (providerId, keyId) => {
+                const p = document.getElementById(providerId)?.value;
+                const k = (document.getElementById(keyId)?.value || '').trim();
+                if (p && k) config.push({ provider: p, keys: k.split(',').map(x => x.trim()).filter(Boolean) });
+            };
+            add('providerPrimary', 'keyPrimary');
+            add('providerFallback1', 'keyFallback1');
+            add('providerFallback2', 'keyFallback2');
+            return config;
+        }
 
-            if (!targetKeys || targetKeys.length === 0) {
-                throw new Error("No Gemini API keys provided.");
+        const PROVIDER_KEY_URLS = {
+            gemini: 'https://aistudio.google.com/apikey',
+            openai: 'https://platform.openai.com/api-keys',
+            grok: 'https://console.x.ai/',
+            claude: 'https://console.anthropic.com/',
+            openrouter: 'https://openrouter.ai/keys'
+        };
+
+        async function pasteFromClipboard(inputId) {
+            const el = document.getElementById(inputId);
+            if (!el) return;
+            try {
+                const text = await navigator.clipboard.readText();
+                el.value = text.trim();
+                el.focus();
+                showToast('Pasted from clipboard');
+            } catch (e) {
+                el.focus();
+                showToast('Click the field and press Ctrl+V to paste', 'info');
+            }
+        }
+
+        function updateGetKeyLinks() {
+            const pairs = [
+                ['providerPrimary', 'getKeyPrimary'],
+                ['providerFallback1', 'getKeyFallback1'],
+                ['providerFallback2', 'getKeyFallback2']
+            ];
+            pairs.forEach(([selectId, linkId]) => {
+                const sel = document.getElementById(selectId);
+                const link = document.getElementById(linkId);
+                if (!sel || !link) return;
+                const provider = sel.value;
+                if (provider && PROVIDER_KEY_URLS[provider]) {
+                    link.href = PROVIDER_KEY_URLS[provider];
+                    link.style.visibility = 'visible';
+                } else {
+                    link.href = '#';
+                    link.style.visibility = 'hidden';
+                }
+            });
+        }
+
+        const PROVIDER_INFO = {
+            gemini: { name: 'Gemini', model: 'gemini-2.0-flash', url: (k) => `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${k}` },
+            openai: { name: 'OpenAI', model: 'gpt-4o-mini', url: () => 'https://api.openai.com/v1/chat/completions' },
+            grok: { name: 'Grok', model: 'grok-3-mini', url: () => 'https://api.x.ai/v1/chat/completions' },
+            claude: { name: 'Claude', model: 'claude-3-5-haiku', url: () => 'https://api.anthropic.com/v1/messages' },
+            openrouter: { name: 'OpenRouter', model: 'google/gemini-2.0-flash', url: () => 'https://openrouter.ai/api/v1/chat/completions' }
+        };
+
+        async function callProvider(provider, apiKey, prompt) {
+            const info = PROVIDER_INFO[provider];
+            if (!info) throw new Error('Unknown provider: ' + provider);
+
+            const opts = { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: abortController?.signal };
+
+            if (provider === 'gemini') {
+                opts.body = JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.8, topP: 0.95, maxOutputTokens: 4096 }
+                });
+                const res = await fetch(info.url(apiKey), opts);
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data?.error?.message || `API error: ${res.status}`);
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No content generated.';
+            }
+
+            if (provider === 'openai' || provider === 'grok' || provider === 'openrouter') {
+                opts.body = JSON.stringify({
+                    model: provider === 'openrouter' ? info.model : (provider === 'openai' ? 'gpt-4o-mini' : info.model),
+                    messages: [{ role: 'user', content: prompt }],
+                    temperature: 0.8,
+                    max_tokens: 4096
+                });
+                opts.headers['Authorization'] = 'Bearer ' + apiKey;
+                if (provider === 'openrouter') opts.headers['HTTP-Referer'] = window.location.origin;
+                const res = await fetch(info.url(), opts);
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data?.error?.message || data?.message || `API error: ${res.status}`);
+                return data.choices?.[0]?.message?.content || data.choices?.[0]?.text || 'No content generated.';
+            }
+
+            if (provider === 'claude') {
+                opts.body = JSON.stringify({
+                    model: info.model,
+                    max_tokens: 4096,
+                    messages: [{ role: 'user', content: prompt }]
+                });
+                opts.headers['x-api-key'] = apiKey;
+                opts.headers['anthropic-version'] = '2023-06-01';
+                const res = await fetch(info.url(), opts);
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data?.error?.message || `API error: ${res.status}`);
+                const text = data.content?.find(c => c.type === 'text')?.text;
+                return text || 'No content generated.';
+            }
+
+            throw new Error('Provider not implemented: ' + provider);
+        }
+
+        // ─── Unified LLM call with multi-provider fallback ───
+        async function callGemini(prompt, initialConfig = null) {
+            const config = initialConfig || buildProviderConfig();
+
+            if (!config.length) {
+                throw new Error("No AI provider configured. Add at least one provider (Gemini, OpenAI, Grok, Claude, or OpenRouter) and API key.");
             }
 
             let lastError = null;
-            const originalTitle = document.getElementById('progressTitle').textContent;
+            const originalTitle = document.getElementById('progressTitle')?.textContent || '';
+            const progressEl = document.getElementById('progressTitle');
 
-            for (let attempt = 0; attempt < targetKeys.length; attempt++) {
-                const keyIndex = (currentKeyIndex + attempt) % targetKeys.length;
-                const apiKey = targetKeys[keyIndex];
+            for (let cfgIdx = 0; cfgIdx < config.length; cfgIdx++) {
+                const { provider, keys } = config[cfgIdx];
+                if (!keys.length) continue;
 
-                try {
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-                    let response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        signal: abortController?.signal,
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: prompt }] }],
-                            generationConfig: {
-                                temperature: 0.8,
-                                topP: 0.95,
-                                maxOutputTokens: 4096
-                            }
-                        })
-                    });
+                for (let keyIdx = 0; keyIdx < keys.length; keyIdx++) {
+                    const apiKey = keys[keyIdx];
+                    const providerName = PROVIDER_INFO[provider]?.name || provider;
 
-                    let errData = null;
-                    if (!response.ok) {
-                        errData = await response.json().catch(() => ({}));
-                    }
-
-                    // Handle Quota / Rate Limit (429)
-                    if (response.status === 429) {
-                        const errMsg = errData?.error?.message || "";
-                        console.warn(`Key ${keyIndex} hit quota. Message: ${errMsg}`);
-
-                        // Parse "retry in X.Xs" from the message
-                        const retryMatch = errMsg.match(/retry in ([\d\.]+)s/);
-                        if (retryMatch) {
-                            const waitSeconds = parseFloat(retryMatch[1]);
-                            const waitMs = (waitSeconds + 1) * 1000; // Add 1s buffer
-
-                            showToast(`Quota hit for key #${keyIndex + 1}. Waiting ${waitSeconds}s...`, 'warning');
-                            document.getElementById('progressTitle').textContent = `⏳ Waiting for quota (#${keyIndex + 1})...`;
-
-                            await sleep(waitMs);
-                            document.getElementById('progressTitle').textContent = originalTitle;
-
-                            // Retry current key once after waiting
-                            response = await fetch(url, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                signal: abortController?.signal,
-                                body: JSON.stringify({
-                                    contents: [{ parts: [{ text: prompt }] }],
-                                    generationConfig: { temperature: 0.8, topP: 0.95, maxOutputTokens: 4096 }
-                                })
-                            });
-
-                            if (response.ok) {
-                                const data = await response.json();
-                                currentKeyIndex = keyIndex;
-                                return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No content generated.';
-                            } else {
-                                errData = await response.json().catch(() => ({}));
-                            }
+                    try {
+                        if (cfgIdx > 0 || keyIdx > 0) {
+                            showToast(`Trying ${providerName} (fallback ${cfgIdx + 1})...`, 'info');
+                            if (progressEl) progressEl.textContent = `Trying ${providerName}...`;
                         }
 
-                        // If wait/retry failed or no retry suggestion, move to next key
-                        console.warn(`Key ${keyIndex} still failing. Trying next key.`);
-                        lastError = new Error(errData?.error?.message || `API error: ${response.status}`);
-                        continue;
+                        const text = await callProvider(provider, apiKey, prompt);
+
+                        currentProviderIndex = cfgIdx;
+                        currentKeyIndex = keyIdx;
+                        if (cfgIdx > 0 || keyIdx > 0) {
+                            showToast(`Using ${providerName}`, 'success');
+                            if (progressEl) progressEl.textContent = originalTitle;
+                        }
+                        return text;
+
+                    } catch (e) {
+                        if (e.name === 'AbortError') throw e;
+                        const msg = e.message || '';
+                        const isQuota = msg.toLowerCase().includes('quota') || msg.includes('rate') || msg.includes('429');
+                        console.warn(`${providerName} failed:`, e);
+
+                        if (isQuota && progressEl) {
+                            progressEl.textContent = `${providerName} quota exceeded. Trying next...`;
+                        }
+                        lastError = e;
                     }
-
-                    if (response.status >= 500) {
-                        console.warn(`Key ${keyIndex} failed with status ${response.status}. Trying next key...`);
-                        lastError = new Error(errData?.error?.message || `API error: ${response.status}`);
-                        continue;
-                    }
-
-                    if (!response.ok) {
-                        throw new Error(errData?.error?.message || `API error: ${response.status}`);
-                    }
-
-                    const data = await response.json();
-                    currentKeyIndex = keyIndex;
-
-                    if (attempt > 0) {
-                        showToast(`Switched to working API key (#${keyIndex + 1})`, 'success');
-                    }
-
-                    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No content generated.';
-
-                } catch (e) {
-                    if (e.name === 'AbortError') throw e;
-                    console.warn(`Attempt with key ${keyIndex} failed:`, e);
-                    lastError = e;
                 }
             }
 
-            const finalMsg = lastError?.message || "All API keys failed.";
-            if (finalMsg.toLowerCase().includes("quota")) {
-                throw new Error(`${finalMsg}\n\nTIP: All backup keys are exhausted or waiting. Try adding more keys or wait a few minutes.`);
-            }
-            throw lastError || new Error("All API keys failed.");
+            const finalMsg = lastError?.message || "All providers failed.";
+            const tip = config.length > 1
+                ? "Try adding more fallback providers (OpenAI, OpenRouter) or wait a few minutes."
+                : "Add fallback providers (OpenAI, Grok, OpenRouter) in config — app will auto-switch when one hits quota.";
+            throw new Error(`${finalMsg}\n\nTIP: ${tip}`);
         }
 
         // ─── SerpAPI (App Store Search) ───
@@ -1516,7 +1941,8 @@ ${ctx(['target_audience', 'competitor_analysis', 'uvp', 'swot'])}
 
 Provide in markdown format:
 1. **Core Features (MVP)** — the must-have features for launch (8-12 features)
-   - For each: feature name, description, user benefit, priority (P0/P1/P2), estimated complexity
+   - List each feature on its own line starting with "- " followed by the feature name, then " — " and the description (e.g., "- User Authentication — Secure login via email/social")
+   - Include: feature name, description, user benefit, priority (P0/P1/P2), estimated complexity
 2. **Premium/Advanced Features** — features for paid tiers (5-8 features)
 3. **Nice-to-Have Features** — future consideration (5-8 features)
 4. **Feature Prioritization Matrix** — markdown table: Feature | Impact | Effort | Priority
@@ -1652,6 +2078,14 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
                 <button class="btn btn--secondary btn--small" onclick="regenerateSection('${section.id}')">
                     🔄 Regenerate
                 </button>
+                ${section.id === 'features' ? `
+                <button class="btn btn--secondary btn--small" onclick="openFeatureReviewModal()" title="Mark features that passed review">
+                    ✓ Pass Review
+                </button>
+                <button class="btn btn--primary btn--small" onclick="generateUserFlow()" id="generateUserFlowBtn" title="Generate user flow from features marked as pass review">
+                    🔄 Generate User Flow
+                </button>
+                ` : ''}
             </div>
         </div>
     </div>`;
@@ -1675,24 +2109,34 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
 
         // ─── Core Analysis Pipeline ───
         async function startAnalysis() {
-            const geminiKey = document.getElementById('geminiKey').value.trim();
             const serpKey = document.getElementById('serpKey').value.trim();
             const userPrompt = document.getElementById('promptInput').value.trim();
+            providerConfig = buildProviderConfig();
 
-            if (!geminiKey) { showToast('Please enter at least one Gemini API key.', 'error'); return; }
+            if (!providerConfig.length) {
+                showToast('Please add at least one AI provider and API key (Gemini, OpenAI, Grok, etc.).', 'error');
+                return;
+            }
             if (!userPrompt) { showToast('Please enter a product prompt.', 'error'); return; }
 
-            // Parse keys
-            apiKeys = geminiKey.split(',').map(k => k.trim()).filter(k => k);
-            currentKeyIndex = 0; // Reset to first key on new analysis start
+            currentProviderIndex = 0;
+            currentKeyIndex = 0;
 
-            // Save keys to localStorage
-            localStorage.setItem('pa_gemini_key', geminiKey);
+            // Save to localStorage
+            localStorage.setItem('pa_provider_primary', document.getElementById('providerPrimary')?.value || 'gemini');
+            localStorage.setItem('pa_key_primary', document.getElementById('keyPrimary')?.value || '');
+            localStorage.setItem('pa_provider_fb1', document.getElementById('providerFallback1')?.value || '');
+            localStorage.setItem('pa_key_fb1', document.getElementById('keyFallback1')?.value || '');
+            localStorage.setItem('pa_provider_fb2', document.getElementById('providerFallback2')?.value || '');
+            localStorage.setItem('pa_key_fb2', document.getElementById('keyFallback2')?.value || '');
             localStorage.setItem('pa_serp_key', serpKey);
 
             isGenerating = true;
             abortController = new AbortController();
             analysisData = {};
+            userFlowData = null;
+            const ufActions = document.getElementById('userFlowActions');
+            if (ufActions) ufActions.style.display = 'none';
 
             // UI Updates
             document.getElementById('generateBtn').disabled = true;
@@ -1718,8 +2162,7 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
                 try {
                     // Extract a search query from the prompt
                     const searchQuery = await callGemini(
-                        `Extract a concise 2-4 word app store search query from this product concept. Return ONLY the search query, nothing else: "${userPrompt}"`,
-                        geminiKey
+                        `Extract a concise 2-4 word app store search query from this product concept. Return ONLY the search query, nothing else: "${userPrompt}"`
                     );
                     appStoreData = await searchAppStores(searchQuery.trim(), serpKey);
                     if (appStoreData) {
@@ -1837,12 +2280,11 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
         }
 
         async function regenerateSection(id) {
-            const geminiKey = document.getElementById('geminiKey').value.trim();
-            const serpKey = document.getElementById('serpKey').value.trim();
+            const config = buildProviderConfig();
             const userPrompt = document.getElementById('promptInput').value.trim();
 
-            if (!geminiKey || !userPrompt) {
-                showToast('API key and prompt required.', 'error');
+            if (!config.length || !userPrompt) {
+                showToast('AI provider key and prompt required.', 'error');
                 return;
             }
 
@@ -1882,7 +2324,7 @@ Be specific to this product, not generic. Rate each risk numerically.${citationI
             const statusEl = document.getElementById('refiningStatus');
             const refineBtn = document.getElementById('refineBtn');
 
-            if (apiKeys.length === 0 || !userInput) return;
+            if (buildProviderConfig().length === 0 || !userInput) return;
 
             // Add user message to UI
             const userMsg = document.createElement('div');
@@ -1988,6 +2430,325 @@ RESPONSE FORMAT: (Only return the JSON object)
                 refineBtn.disabled = false;
                 messagesEl.scrollTop = messagesEl.scrollHeight;
             }
+        }
+
+        // ─── Feature Review & User Flow ───
+        function parseFeaturesFromContent() {
+            const content = analysisData.features || '';
+            const features = [];
+            const seen = new Set();
+
+            // Match list items: "- Feature name" or "1. Feature name" or "* Feature name"
+            const listRegex = /^[\s]*[-*]?\s*\d*\.?\s*\*?\*?(.+?)\*?\*?(?:\s*[—\-–]\s*.+)?$/gm;
+            // Match table rows: | Feature | ...
+            const tableRegex = /^\|\s*\*?\*?(.+?)\*?\*?\s*\|/gm;
+
+            const extract = (match) => {
+                let name = match.replace(/^\s*[-*]\s*|\d+\.\s*/g, '').replace(/\*\*/g, '').trim();
+                // Take first part before dash/colon for cleaner name
+                name = name.split(/\s*[—\-–:]\s*/)[0].trim();
+                if (name && name.length > 2 && name.length < 80 && !seen.has(name.toLowerCase())) {
+                    seen.add(name.toLowerCase());
+                    return name;
+                }
+                return null;
+            };
+
+            let m;
+            const lines = content.split('\n');
+            for (const line of lines) {
+                // Skip headers, sources, empty
+                if (/^#{1,6}\s|^###\s|^Sources|^-{3,}$/.test(line) || line.trim().length < 5) continue;
+
+                // List item
+                const listMatch = line.match(/^[\s]*[-*]?\s*(\d+\.)?\s*\*?(.+?)(?:\*?\s*[—\-–]\s*.+)?$/);
+                if (listMatch && listMatch[2]) {
+                    let name = listMatch[2].replace(/\*\*/g, '').trim().split(/\s*[—\-–:]\s*/)[0].trim();
+                    if (name.length > 3 && name.length < 80 && !seen.has(name.toLowerCase())) {
+                        seen.add(name.toLowerCase());
+                        features.push(name);
+                    }
+                    continue;
+                }
+
+                // Table row (skip header separator)
+                if (line.startsWith('|') && !line.match(/^\|[-:\s|]+\|$/)) {
+                    const cells = line.split('|').map(c => c.trim()).filter(Boolean);
+                    if (cells[0] && !/feature|name|description/i.test(cells[0])) {
+                        let name = cells[0].replace(/\*\*/g, '').trim();
+                        if (name.length > 2 && name.length < 80 && !seen.has(name.toLowerCase())) {
+                            seen.add(name.toLowerCase());
+                            features.push(name);
+                        }
+                    }
+                }
+            }
+
+            return features;
+        }
+
+        function openFeatureReviewModal() {
+            const features = parseFeaturesFromContent();
+            const modal = document.getElementById('featureReviewModal');
+            const listEl = document.getElementById('featureReviewList');
+
+            if (features.length === 0) {
+                listEl.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">No features detected. Run analysis first or ensure the Product Features section has list/table content.</p>';
+            } else {
+                listEl.innerHTML = features.map((f, i) => `
+                    <div class="feature-review-item ${featuresPassedReview.includes(f) ? 'passed' : ''}">
+                        <input type="checkbox" id="feat-${i}" data-feature="${f.replace(/"/g, '&quot;')}" ${featuresPassedReview.includes(f) ? 'checked' : ''}>
+                        <label class="feature-review-item__label" for="feat-${i}">${f.replace(/</g, '&lt;')}</label>
+                    </div>
+                `).join('');
+            }
+            modal.classList.add('active');
+        }
+
+        function closeFeatureReviewModal() {
+            document.getElementById('featureReviewModal').classList.remove('active');
+        }
+
+        function confirmFeatureReview() {
+            const checkboxes = document.querySelectorAll('#featureReviewList input[type="checkbox"]:checked');
+            featuresPassedReview = Array.from(checkboxes).map(cb => cb.dataset.feature || cb.nextElementSibling?.textContent).filter(Boolean);
+            closeFeatureReviewModal();
+            showToast(`Selected ${featuresPassedReview.length} feature(s) for user flow generation.`);
+        }
+
+        function toggleUserFlowSection() {
+            const section = document.getElementById('userFlowSection');
+            const chevron = document.getElementById('userFlowChevron');
+            section.classList.toggle('expanded');
+            chevron.style.transform = section.classList.contains('expanded') ? 'rotate(180deg)' : 'none';
+        }
+
+        async function generateUserFlow() {
+            const config = buildProviderConfig();
+            const userPrompt = document.getElementById('promptInput').value.trim();
+            const btn = document.getElementById('generateUserFlowBtn');
+
+            if (!config.length) { showToast('Please add an AI provider and API key.', 'error'); return; }
+            if (!analysisData.features) { showToast('Generate the Product Features section first.', 'error'); return; }
+
+            let featuresToUse = featuresPassedReview.length > 0 ? featuresPassedReview : parseFeaturesFromContent();
+            if (featuresToUse.length === 0) {
+                showToast('Mark features as Pass Review first, or ensure the Features section has parseable content.', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating...';
+
+            const diagramEl = document.getElementById('userFlowDiagram');
+            diagramEl.innerHTML = '<div style="display:flex;align-items:center;gap:12px;color:var(--text-muted);"><div class="spinner"></div> Generating user flow from features...</div>';
+
+            document.getElementById('userFlowSection').classList.add('active');
+            document.getElementById('userFlowSection').classList.add('expanded');
+
+            try {
+                abortController = new AbortController();
+                const lang = document.getElementById('targetLanguage').value;
+
+                const flowPrompt = `You are a senior product designer. Create a product user flow based on these features that passed review.
+
+Product concept: "${userPrompt}"
+Features (passed review): ${featuresToUse.join(', ')}
+
+Provide your response as a JSON object with two fields:
+1. "mermaid": A Mermaid flowchart diagram showing the user flow. Use flowchart TD or LR. Nodes should represent: entry point, key screens/steps, decisions, and outcomes. Use proper Mermaid syntax. Keep it readable (max ~20 nodes).
+2. "description": A markdown description (2-4 paragraphs) explaining the user flow, key steps, and how the features connect.
+
+Example mermaid structure:
+flowchart TD
+    A[User Opens App] --> B[Onboarding]
+    B --> C{First time?}
+    C -->|Yes| D[Sign Up]
+    C -->|No| E[Login]
+    D --> F[Dashboard]
+    E --> F
+    F --> G[Feature 1]
+    
+Only return valid JSON, no markdown code fences.`;
+
+                const raw = await callGemini(flowPrompt);
+                let jsonStr = raw.trim();
+                if (jsonStr.startsWith('```json')) jsonStr = jsonStr.replace(/```json|```/g, '').trim();
+                if (jsonStr.startsWith('```')) jsonStr = jsonStr.replace(/```/g, '').trim();
+
+                let result;
+                try {
+                    result = JSON.parse(jsonStr);
+                } catch (parseErr) {
+                    // Fallback: treat raw response as description, no diagram
+                    diagramEl.innerHTML = '<div class="markdown-body">' + marked.parse(raw) + '</div>';
+                    showToast('User flow generated (text only).');
+                    return;
+                }
+
+                const descHtml = result.description ? marked.parse(result.description) : '';
+
+                let diagramHtml = descHtml;
+                if (result.mermaid) {
+                    diagramHtml += '<div class="user-flow-diagram mermaid">' + result.mermaid + '</div>';
+                }
+
+                diagramEl.innerHTML = diagramHtml;
+
+                if (result.mermaid && typeof mermaid !== 'undefined') {
+                    try {
+                        mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+                        await mermaid.run({ querySelector: '#userFlowDiagram .mermaid', suppressErrors: true });
+                    } catch (mr) { console.warn('Mermaid render:', mr); }
+                }
+
+                userFlowData = { mermaid: result.mermaid, description: result.description };
+                document.getElementById('userFlowActions').style.display = 'flex';
+                showToast('User flow generated!');
+            } catch (e) {
+                console.error(e);
+                diagramEl.innerHTML = '<div class="markdown-body" style="color:var(--danger)">⚠️ Failed to generate user flow: ' + (e.message || 'Unknown error') + '</div>';
+                showToast('User flow generation failed.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔄 Generate User Flow';
+            }
+        }
+
+        let figmaSpecContent = null;  // Stores generated Figma design spec HTML
+
+        function exportUserFlowSVG() {
+            const svgEl = document.querySelector('#userFlowDiagram svg');
+            if (!svgEl) {
+                showToast('Generate user flow first or diagram not available.', 'error');
+                return;
+            }
+            const svg = svgEl.outerHTML;
+            const blob = new Blob([svg], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `user-flow-${Date.now()}.svg`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('SVG downloaded! Drag into Figma to import.');
+        }
+
+        async function generateFigmaDesignSpec() {
+            const config = buildProviderConfig();
+            const userPrompt = document.getElementById('promptInput').value.trim();
+            const btn = document.getElementById('generateFigmaBtn');
+
+            if (!config.length) { showToast('Please add an AI provider and API key.', 'error'); return; }
+            if (!userFlowData && !document.getElementById('userFlowDiagram').innerHTML.trim()) {
+                showToast('Generate the user flow first.', 'error');
+                return;
+            }
+
+            const userFlowDesc = userFlowData?.description || '';
+            const features = featuresPassedReview.length > 0 ? featuresPassedReview : parseFeaturesFromContent();
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating...';
+
+            try {
+                abortController = new AbortController();
+                const lang = document.getElementById('targetLanguage').value;
+
+                const prompt = `You are a senior UX/UI designer creating a Figma-ready design specification.
+
+Product concept: "${userPrompt}"
+User flow summary: ${userFlowDesc}
+Key features: ${features.join(', ')}
+
+Generate a comprehensive Figma design spec. Return a valid JSON object:
+{
+  "title": "Product name - Figma Design Spec",
+  "frames": [
+    {
+      "name": "Screen/Frame name",
+      "width": 375,
+      "height": 812,
+      "description": "What this screen shows",
+      "components": ["Component1", "Component2"],
+      "layout": "Brief layout notes"
+    }
+  ],
+  "designTokens": {
+    "colors": { "primary": "#8b5cf6", "..." },
+    "typography": { "heading": "24px / Inter / Bold", "..." },
+    "spacing": { "xs": 4, "sm": 8, "md": 16 }
+  },
+  "componentLibrary": ["List", "of", "reusable", "components"],
+  "notes": "Additional design guidance"
+}
+
+Include 5-12 frames covering: onboarding, main screens, key feature flows. Use mobile-first dimensions (375x812 or 390x844). Be specific. Output ONLY valid JSON.`;
+
+                const raw = await callGemini(prompt);
+                let jsonStr = raw.trim();
+                if (jsonStr.startsWith('```json')) jsonStr = jsonStr.replace(/```json|```/g, '').trim();
+                if (jsonStr.startsWith('```')) jsonStr = jsonStr.replace(/```/g, '').trim();
+
+                const spec = JSON.parse(jsonStr);
+
+                let html = '<h2 style="color:var(--text-primary);margin-bottom:16px;">' + (spec.title || 'Figma Design Spec') + '</h2>';
+                if (spec.notes) html += '<p class="markdown-body" style="margin-bottom:20px;">' + spec.notes + '</p>';
+
+                html += '<h3 style="color:var(--accent-light);margin:24px 0 12px;">Frames & Screens</h3>';
+                (spec.frames || []).forEach((f, i) => {
+                    html += `<div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;">
+                        <strong>${i + 1}. ${f.name}</strong> <span style="color:var(--text-muted);font-size:12px;">(${f.width || 375}×${f.height || 812})</span>
+                        <p style="font-size:13px;color:var(--text-secondary);margin:8px 0 0;">${f.description || ''}</p>
+                        ${f.components?.length ? '<div style="margin-top:8px;font-size:12px;color:var(--text-muted);">Components: ' + f.components.join(', ') + '</div>' : ''}
+                        ${f.layout ? '<div style="margin-top:4px;font-size:12px;">Layout: ' + f.layout + '</div>' : ''}
+                    </div>`;
+                });
+
+                if (spec.designTokens) {
+                    html += '<h3 style="color:var(--accent-light);margin:24px 0 12px;">Design Tokens</h3><pre style="background:var(--bg-secondary);padding:16px;border-radius:8px;font-size:12px;overflow-x:auto;">' + JSON.stringify(spec.designTokens, null, 2) + '</pre>';
+                }
+                if (spec.componentLibrary?.length) {
+                    html += '<h3 style="color:var(--accent-light);margin:24px 0 12px;">Component Library</h3><p class="markdown-body">' + spec.componentLibrary.join(', ') + '</p>';
+                }
+
+                figmaSpecContent = html;
+                document.getElementById('figmaSpecBody').innerHTML = html;
+                document.getElementById('figmaSpecModal').classList.add('active');
+                showToast('Figma design spec generated!');
+            } catch (e) {
+                console.error(e);
+                showToast('Failed to generate Figma spec: ' + (e.message || 'Unknown error'), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📐 Generate Figma Design';
+            }
+        }
+
+        function closeFigmaSpecModal() {
+            document.getElementById('figmaSpecModal').classList.remove('active');
+        }
+
+        function exportFigmaSpecHTML() {
+            if (!figmaSpecContent) return;
+            const prompt = document.getElementById('promptInput').value.trim();
+            const safePrompt = prompt.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const varMap = { 'bg-secondary':'#12121a','border':'#333','text-primary':'#f0f0f5','text-secondary':'#9898a6','text-muted':'#5a5a6e','accent-light':'#a78bfa' };
+            const safeContent = figmaSpecContent.replace(/var\(--([a-z-]+)\)/g, (_, k) => varMap[k] || '#888');
+            const fullHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Figma Design Spec</title>' +
+                '<style>body{font-family:Inter,sans-serif;background:#0a0a0f;color:#f0f0f5;padding:40px;max-width:800px;margin:0 auto}' +
+                'h2{color:#a78bfa}h3{color:#8b5cf6}pre{background:#12121a;color:#9898a6;padding:16px;border-radius:8px}</style></head><body>' +
+                '<h1>Figma Design Spec</h1><p><strong>Product:</strong> ' + safePrompt + '</p>' +
+                '<p><strong>Generated:</strong> ' + new Date().toLocaleString() + '</p><hr style="border-color:#333;margin:24px 0">' +
+                safeContent + '</body></html>';
+            const blob = new Blob([fullHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'figma-design-spec-' + Date.now() + '.html';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Design spec HTML downloaded!');
         }
 
         // ─── Expand / Collapse ───
@@ -2125,13 +2886,29 @@ RESPONSE FORMAT: (Only return the JSON object)
 
         // ─── Init ───
         document.addEventListener('DOMContentLoaded', () => {
-            // Restore saved keys
-            const savedGemini = localStorage.getItem('pa_gemini_key');
-            const savedSerp = localStorage.getItem('pa_serp_key');
-            const savedLang = localStorage.getItem('pa_target_lang');
-            if (savedGemini) document.getElementById('geminiKey').value = savedGemini;
-            if (savedSerp) document.getElementById('serpKey').value = savedSerp;
-            if (savedLang) document.getElementById('targetLanguage').value = savedLang;
+            // Restore saved config
+            const keyPrimary = document.getElementById('keyPrimary');
+            const providerPrimary = document.getElementById('providerPrimary');
+            const keyFb1 = document.getElementById('keyFallback1');
+            const providerFb1 = document.getElementById('providerFallback1');
+            const keyFb2 = document.getElementById('keyFallback2');
+            const providerFb2 = document.getElementById('providerFallback2');
+            if (keyPrimary && localStorage.getItem('pa_key_primary')) keyPrimary.value = localStorage.getItem('pa_key_primary');
+            if (providerPrimary && localStorage.getItem('pa_provider_primary')) providerPrimary.value = localStorage.getItem('pa_provider_primary');
+            if (keyFb1 && localStorage.getItem('pa_key_fb1')) keyFb1.value = localStorage.getItem('pa_key_fb1');
+            if (providerFb1 && localStorage.getItem('pa_provider_fb1')) providerFb1.value = localStorage.getItem('pa_provider_fb1');
+            if (keyFb2 && localStorage.getItem('pa_key_fb2')) keyFb2.value = localStorage.getItem('pa_key_fb2');
+            if (providerFb2 && localStorage.getItem('pa_provider_fb2')) providerFb2.value = localStorage.getItem('pa_provider_fb2');
+            const serpEl = document.getElementById('serpKey');
+            if (serpEl && localStorage.getItem('pa_serp_key')) serpEl.value = localStorage.getItem('pa_serp_key');
+            const langEl = document.getElementById('targetLanguage');
+            if (langEl && localStorage.getItem('pa_target_lang')) langEl.value = localStorage.getItem('pa_target_lang');
+            // Backward compat: restore old gemini key to primary if no key saved
+            if (keyPrimary && !keyPrimary.value && localStorage.getItem('pa_gemini_key')) {
+                keyPrimary.value = localStorage.getItem('pa_gemini_key');
+                if (providerPrimary) providerPrimary.value = 'gemini';
+            }
+            updateGetKeyLinks();
 
             // Handle language change save
             document.getElementById('targetLanguage').addEventListener('change', (e) => {
